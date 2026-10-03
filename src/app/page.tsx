@@ -1,11 +1,23 @@
+import { Hero } from "@/components/Hero";
+
+const sections = [
+  { id: "work", label: "// 01 – work", title: "Selected Work" },
+  { id: "about", label: "// 02 – about", title: "About & Capabilities" },
+  { id: "experience", label: "// 03 – experience", title: "Experience" },
+  { id: "contact", label: "// 04 – contact", title: "Let's talk" },
+];
+
 export default function Home() {
   return (
-    <main className="min-h-screen bg-frame p-4 md:p-8">
-      <div className="min-h-[calc(100vh-4rem)] rounded-3xl bg-background p-8 md:p-16">
-        <p className="font-mono text-sm text-primary">{"//"} 01 – setup</p>
-        <h1 className="font-display text-6xl font-extrabold md:text-8xl">John Ford Actub</h1>
-        <p className="mt-4 text-muted">Front-End Developer</p>
-      </div>
-    </main>
+    <div className="mx-auto w-[calc(100%-2rem)] max-w-6xl">
+      <Hero />
+
+      {sections.map((s) => (
+        <section key={s.id} id={s.id} className="scroll-mt-28 border-t border-foreground/10 py-24">
+          <p className="font-mono text-sm text-primary">{s.label}</p>
+          <h2 className="font-display text-4xl font-bold md:text-6xl">{s.title}</h2>
+        </section>
+      ))}
+    </div>
   );
 }
