@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* Dark mode is controlled by a .dark class on <html> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f3f8f5;
+  --foreground: #0a1f19;
+  --card: #ffffff;
+  --muted: #5b7a70;
+  --primary: #0d9373;
+  --frame: #0a6b55;
+}
+
+.dark {
+  --background: #05120e;
+  --foreground: #e4f5ee;
+  --card: #0c211b;
+  --muted: #8fb3a6;
+  --primary: #2ee0b0;
+  --frame: #0f4a3c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-frame: var(--frame);
+
+  --font-display: var(--font-bricolage);
+  --font-sans: var(--font-geist);
+  --font-mono: var(--font-jetbrains);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
