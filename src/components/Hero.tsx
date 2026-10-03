@@ -12,7 +12,9 @@ export function Hero() {
         >
           {site.shortName}
         </div>
-        <p className="font-mono text-sm text-primary">// {site.title}</p>
+        <p className="font-mono text-sm text-primary">
+          {"//"} {site.title}
+        </p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end md:gap-12">
