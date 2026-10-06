@@ -17,7 +17,7 @@ Your daily loop
 
 git checkout main
 git pull
-git checkout -b feat/hero-section
+git checkout -b feat/sample-branch
 
 # ...work, then commit as you go...
 
@@ -27,6 +27,16 @@ git push -u origin feat/hero-section
 
 git checkout main
 git pull
-git branch -d feat/hero-section
+git branch -d feat/sample-branch
 
 Keep each PR small and about one thing, such as one section or one animation. They're easier to review, and the Vercel preview lets you check the result on your phone before it reaches production.
+
+# When pushing to main
+
+- npm run lint
+- npm run typecheck
+- npm run build
+- git status
+- git add .
+- git commit -m "feat: sample message"
+- git push -u origin feat/sample-branch
