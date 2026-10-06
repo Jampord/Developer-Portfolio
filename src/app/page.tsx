@@ -3,11 +3,7 @@ import { Experience } from "@/components/Experience";
 import { Hero } from "@/components/Hero";
 import { SelectedWork } from "@/components/SelectedWork";
 
-const sections = [
-  { id: "about", label: "// 02 – about", title: "About & Capabilities" },
-  { id: "experience", label: "// 03 – experience", title: "Experience" },
-  { id: "contact", label: "// 04 – contact", title: "Let's talk" },
-];
+const sections = [{ id: "contact", label: "// 04 – contact", title: "Let's talk" }];
 
 export default function Home() {
   return (
