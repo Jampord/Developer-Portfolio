@@ -52,6 +52,8 @@ export default async function ProjectPage({ params }: Props) {
         <div className="flex flex-wrap gap-3">
           {project.links?.live && (
             <a
+              target="_blank"
+              rel="noopener noreferrer"
               href={project.links.live}
               className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
@@ -60,6 +62,8 @@ export default async function ProjectPage({ params }: Props) {
           )}
           {project.links?.repo && (
             <a
+              target="_blank"
+              rel="noopener noreferrer"
               href={project.links.repo}
               className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
             >
