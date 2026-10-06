@@ -60,15 +60,21 @@ export default async function ProjectPage({ params }: Props) {
               Live site <ExternalLink className="size-4" aria-hidden="true" />
             </a>
           )}
-          {project.links?.repo && (
+          {project.links?.repos?.map((r) => (
             <a
+              key={r.href}
+              href={r.href}
               target="_blank"
               rel="noopener noreferrer"
-              href={project.links.repo}
               className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
             >
-              Source code <ExternalLink className="size-4" aria-hidden="true" />
+              {r.label} <ExternalLink className="size-4" aria-hidden="true" />
             </a>
+          ))}
+          {project.note && (
+            <p className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 font-mono text-sm text-muted">
+              {"//"} {project.note}
+            </p>
           )}
         </div>
       </header>

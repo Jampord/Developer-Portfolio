@@ -17,7 +17,8 @@ export type Project = {
   problem: string;
   approach: { title: string; body: string }[];
   outcome: string;
-  links?: { live?: string; repo?: string };
+  links?: { live?: string; repos?: { label: string; href: string }[] };
+  note?: string;
   images: ProjectImage[];
 };
 
@@ -117,7 +118,7 @@ export const projects: Project[] = [
       "I turned a small utility idea into a complete, deployed developer tool with a clean workflow. It's the project where I practiced shipping end to end: building, testing, linting and publishing it myself.",
     links: {
       live: "https://jampord.github.io/Json-Toolbox/",
-      repo: "https://github.com/jampord/Json-Toolbox",
+      repos: [{ label: "Source code", href: "https://github.com/jampord/Json-Toolbox" }],
     },
     images: [
       {
@@ -129,6 +130,87 @@ export const projects: Project[] = [
       {
         src: "/projects/json-toolbox/interfaces.png",
         alt: "JSON Toolbox generating TypeScript interfaces from sample JSON",
+        width: 1600,
+        height: 900,
+      },
+    ],
+  },
+  {
+    slug: "spotify-clone",
+    title: "Spotify Clone",
+    summary:
+      "A full-stack, Spotify-inspired music streaming app with a React front end, a Node and Express API, real-time updates and cloud media storage.",
+    client: "Personal project",
+    role: "Full-Stack Developer",
+    note: "An independent learning project, not affiliated with Spotify. There is no live demo, but both repositories are public.",
+    stack: [
+      {
+        group: "Frontend",
+        items: [
+          "React 19",
+          "TypeScript",
+          "Vite",
+          "Tailwind CSS",
+          "Zustand",
+          "React Router",
+          "Radix UI",
+          "Axios",
+          "Socket.IO Client",
+        ],
+      },
+      {
+        group: "Backend",
+        items: ["Node.js", "Express", "MongoDB", "Mongoose", "Socket.IO"],
+      },
+      { group: "Services", items: ["Clerk (authentication)", "Cloudinary (media)"] },
+      { group: "Tooling", items: ["ESLint", "Responsive UI"] },
+    ],
+    problem:
+      "I wanted to understand how a production-style application fits together, not just build individual front-end screens. So I built a Spotify-inspired streaming app covering both the front end and the back end, with authentication, a database, media storage and real-time communication.",
+    approach: [
+      {
+        title: "Browsing and playback",
+        body: "On the front end I built the music browsing and playback experience with React, TypeScript, Tailwind CSS and React Router. Zustand manages application and player state, including the currently playing song and the playback controls.",
+      },
+      {
+        title: "API, data and media",
+        body: "On the back end I used Node.js, Express, and MongoDB with Mongoose. I integrated Clerk for authentication and Cloudinary to manage music and album media.",
+      },
+      {
+        title: "Real-time activity",
+        body: "I used Socket.IO so player and application activity could be reflected without constantly refreshing the page. Connecting the front end, back end and real-time layer was the most interesting challenge.",
+      },
+    ],
+    outcome:
+      "This project gave me experience building a complete application. It forced me to think about the whole architecture: authentication and database models, API design, file and media management, state management, responsive UI and real-time communication. It taught me how the front end and back end work together.",
+    links: {
+      repos: [
+        {
+          label: "Frontend repo",
+          href: "https://github.com/Jampord/spotify-clone-frontend",
+        },
+        {
+          label: "Backend repo",
+          href: "https://github.com/Jampord/spotify-clone-backend",
+        },
+      ],
+    },
+    images: [
+      {
+        src: "/projects/spotify-clone/home.png",
+        alt: "Spotify Clone home screen with album browsing and a playback bar",
+        width: 1600,
+        height: 900,
+      },
+      {
+        src: "/projects/spotify-clone/player.png",
+        alt: "Spotify Clone player view with playback controls and the current song",
+        width: 1600,
+        height: 900,
+      },
+      {
+        src: "/projects/spotify-clone/upload.png",
+        alt: "Spotify Clone upload view with file selection and upload controls",
         width: 1600,
         height: 900,
       },
