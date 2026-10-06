@@ -1,3 +1,5 @@
+import { About } from "@/components/About";
+import { Experience } from "@/components/Experience";
 import { Hero } from "@/components/Hero";
 import { SelectedWork } from "@/components/SelectedWork";
 
@@ -12,6 +14,8 @@ export default function Home() {
     <div className="mx-auto w-[calc(100%-2rem)] max-w-6xl">
       <Hero />
       <SelectedWork />
+      <About />
+      <Experience />
 
       {sections.map((s) => (
         <section key={s.id} id={s.id} className="scroll-mt-28 border-t border-foreground/10 py-24">
