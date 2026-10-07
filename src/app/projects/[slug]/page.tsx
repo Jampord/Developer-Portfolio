@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, ExternalLink } from "lucide-react";
 import { getProject, projects } from "@/data/projects";
+import { site } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -18,8 +19,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const project = getProject(slug);
   if (!project) return {};
   return {
-    title: `${project.title} — John Ford Actub`,
+    title: project.title,
     description: project.summary,
+    alternates: { canonical: `/projects/${project.slug}` },
+    openGraph: {
+      type: "website",
+      siteName: site.name,
+      title: `${project.title} — ${site.name}`,
+      description: project.summary,
+      url: `/projects/${project.slug}`,
+    },
   };
 }
 
