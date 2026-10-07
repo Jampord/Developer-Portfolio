@@ -39,6 +39,9 @@ export const skillGroups = [
       "React DevTools",
       "Lighthouse",
       "Figma",
+      "Postman",
+      "Apidog",
+      "Swagger",
     ],
   },
 ];
