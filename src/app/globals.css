@@ -43,6 +43,24 @@
   }
 }
 
+/* Stacking project cards: only on large, tall screens that allow motion.
+   Keep this query identical to STACK_QUERY in SelectedWork.tsx */
+@media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+  .stack-list {
+    gap: 12vh;
+  }
+  .stack-header {
+    position: sticky;
+    top: 6rem;
+    z-index: 0;
+  }
+  .stack-card {
+    position: sticky;
+    top: calc(6rem + var(--stack-i, 0) * 1rem);
+    z-index: 1;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
