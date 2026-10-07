@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { projects, type Project } from "@/data/projects";
+import { Reveal } from "./Reveal";
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   const cover = project.images[0];
@@ -56,12 +57,16 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 export function SelectedWork() {
   return (
     <section id="work" className="scroll-mt-28 border-t border-foreground/10 py-24">
-      <p className="font-mono text-sm text-primary">{"//"} 01 – work</p>
-      <h2 className="font-display text-4xl font-bold md:text-6xl">Selected Work</h2>
+      <Reveal>
+        <p className="font-mono text-sm text-primary">{"//"} 01 – work</p>
+        <h2 className="font-display text-4xl font-bold md:text-6xl">Selected Work</h2>
+      </Reveal>
       <ul className="mt-12 grid gap-8">
         {projects.map((p, i) => (
           <li key={p.slug}>
-            <ProjectCard project={p} index={i} />
+            <Reveal>
+              <ProjectCard project={p} index={i} />
+            </Reveal>
           </li>
         ))}
       </ul>
