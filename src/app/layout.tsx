@@ -5,6 +5,7 @@ import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Navbar";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { FrameShell } from "@/components/FrameShell";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -39,9 +40,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
             <div className="min-h-screen bg-frame p-3 md:p-6">
               <div className="min-h-[calc(100vh-1.5rem)] rounded-4xl bg-background md:min-h-[calc(100vh-3rem)]">
-                <Nav />
-                <main id="main">{children}</main>
-                <Footer />
+                <FrameShell>
+                  <Nav />
+                  <main id="main">{children}</main>
+                  <Footer />
+                </FrameShell>
               </div>
             </div>
           </SmoothScroll>
