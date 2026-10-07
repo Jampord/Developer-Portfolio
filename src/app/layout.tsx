@@ -10,6 +10,8 @@ import { Cursor } from "@/components/Cursor";
 import { CommandPalette } from "@/components/ComandPalette";
 import { site } from "@/lib/site";
 import { siteUrl } from "@/lib/url";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -72,6 +74,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </SmoothScroll>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
