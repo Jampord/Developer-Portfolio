@@ -7,7 +7,7 @@ import { Send } from "lucide-react";
 import { contactSchema, type ContactValues } from "@/lib/contact-schema";
 import { site } from "@/lib/site";
 
-type Status = "idle" | "sending" | "sent" | "error";
+type Status = "idle" | "sending" | "sent" | "error" | "limited";
 
 const field =
   "w-full rounded-2xl border border-foreground/15 bg-background px-4 py-3 outline-none transition-colors placeholder:text-muted/60 focus:border-primary focus-visible:ring-2 focus-visible:ring-primary/30";
@@ -29,6 +29,11 @@ export function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
+      if (!res.ok) throw new Error("Request failed");
+      if (res.status === 429) {
+        setStatus("limited");
+        return;
+      }
       if (!res.ok) throw new Error("Request failed");
       reset();
       setStatus("sent");
@@ -117,6 +122,15 @@ export function ContactForm() {
         {status === "error" && (
           <p className="text-red-500">
             Something went wrong. Please email me directly at{" "}
+            <a className="underline" href={`mailto:${site.email}`}>
+              {site.email}
+            </a>
+            .
+          </p>
+        )}
+        {status === "limited" && (
+          <p className="text-red-500">
+            You&apos;ve sent a few messages in a short time. Please try again later, or email me directly at{" "}
             <a className="underline" href={`mailto:${site.email}`}>
               {site.email}
             </a>
