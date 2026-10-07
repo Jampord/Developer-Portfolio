@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { contactSchema } from "@/lib/contact-schema";
+import { checkContactLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   let body: unknown;
@@ -20,6 +21,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 422 });
   }
   const data = parsed.data;
+
+  const limit = await checkContactLimit(getClientIp(req));
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfter) } },
+    );
+  }
 
   const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.CONTACT_TO_EMAIL;
