@@ -24,6 +24,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   return (
     <article
       data-stack-inner
+      data-cursor="View"
       className="group relative origin-top overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 transition-colors hover:border-primary/50 md:p-6"
     >
       {cover && (

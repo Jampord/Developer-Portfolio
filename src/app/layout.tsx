@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Navbar";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { FrameShell } from "@/components/FrameShell";
+import { Cursor } from "@/components/Cursor";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <Cursor />
           <SmoothScroll>
             <a
               href="#main"
