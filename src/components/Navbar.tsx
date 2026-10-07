@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { ThemeToggle } from "./ThemeToggle";
+import { PaletteTrigger } from "./PaletteTrigger";
 
 export function Nav() {
   return (
@@ -27,6 +28,7 @@ export function Nav() {
         </ul>
 
         <div className="flex items-center gap-2">
+          <PaletteTrigger />
           <ThemeToggle />
           <Link
             href="/#contact"
