@@ -8,7 +8,8 @@ export const site = {
     linkedin:
       "https://www.linkedin.com/in/john-ford-actub-074b7029b?utm_source=share_via&utm_content=profile&utm_medium=member_android",
   },
-  tagline: "A front-end developer who turns careful design into fast, accessible, animated interfaces.",
+  tagline:
+    "A front-end developer who enjoys learning, embraces change, and turns new ideas into thoughtful, user-focused interfaces.",
   cvPath: "/john-ford-actub-cv.pdf",
   nav: [
     { label: "Work", href: "/#work" },

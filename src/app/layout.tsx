@@ -8,6 +8,8 @@ import { SmoothScroll } from "@/components/SmoothScroll";
 import { FrameShell } from "@/components/FrameShell";
 import { Cursor } from "@/components/Cursor";
 import { CommandPalette } from "@/components/ComandPalette";
+import { site } from "@/lib/site";
+import { siteUrl } from "@/lib/url";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -19,9 +21,26 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
 });
 
+const defaultTitle = `${site.name} — ${site.title}`;
+
 export const metadata: Metadata = {
-  title: "John Ford Actub — Front-End Developer",
-  description: "Portfolio of John Ford Actub, a front-end developer.",
+  metadataBase: new URL(siteUrl),
+  title: { default: defaultTitle, template: `%s — ${site.name}` },
+  description: site.tagline,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    title: defaultTitle,
+    description: site.tagline,
+    url: "/",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: site.tagline,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
