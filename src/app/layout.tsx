@@ -6,12 +6,11 @@ import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Navbar";
 import { SmoothScroll } from "@/components/SmoothScroll";
 import { FrameShell } from "@/components/FrameShell";
-import { Cursor } from "@/components/Cursor";
-import { CommandPalette } from "@/components/ComandPalette";
 import { site } from "@/lib/site";
 import { siteUrl } from "@/lib/url";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { DeferredCommandPalette, DeferredCursor } from "@/components/Deferred";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -54,8 +53,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Cursor />
-          <CommandPalette />
+          <DeferredCursor />
+          <DeferredCommandPalette />
           <SmoothScroll>
             <a
               href="#main"
