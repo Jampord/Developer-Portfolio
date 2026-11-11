@@ -29,7 +29,7 @@ export function Hero() {
           </div>
         </div>
         <p data-hero-slide className="font-mono text-sm text-primary">
-          {"//"} {site.title}
+          {"//"} {site.label}
         </p>
       </div>
 
