@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { EngineSandbox } from "@/features/deskcloud/components/EngineSandbox";
+import { DemoDesktop } from "@/features/deskcloud/components/DemoDesktop";
+import { en } from "@/features/deskcloud/content/en";
 
-// Work in progress: an engine preview until the real page lands (see docs/deskcloud-plan.md)
+// Work in progress: the live demo until the full page lands (see docs/deskcloud-plan.md)
 export const metadata: Metadata = {
   title: "Deskcloud",
   alternates: { canonical: "/lab/deskcloud" },
@@ -10,15 +11,16 @@ export const metadata: Metadata = {
 };
 
 export default function DeskcloudPage() {
+  const t = en.preview;
   return (
     <>
-      <EngineSandbox />
+      <DemoDesktop />
       <div className="mx-auto flex w-[calc(100%-2rem)] max-w-6xl flex-col items-start gap-3 py-10">
-        <p className="font-mono text-sm text-muted">Lab · engine preview</p>
-        <h1 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">Deskcloud</h1>
-        <p className="text-muted">Clouds part around the dashed boxes. The full page is coming soon.</p>
+        <p className="font-mono text-sm text-muted">{t.eyebrow}</p>
+        <h1 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">{t.title}</h1>
+        <p className="text-muted">{t.body}</p>
         <Link href="/" className="text-primary underline-offset-4 hover:underline">
-          ← Back to portfolio
+          {t.back}
         </Link>
       </div>
     </>
