@@ -1,5 +1,7 @@
 // Shared engine types. All sizes are in CSS pixels; the renderer applies DPR at draw time.
 
+import type { Theme } from "../themes/types";
+
 export type Vec2 = { x: number; y: number };
 
 export type Size = { width: number; height: number };
@@ -20,9 +22,10 @@ export type Puff = {
   dx: number;
   dy: number;
   scale: number;
-  /** Spring velocities for dx and dy */
+  /** Spring velocities for dx, dy and scale */
   vdx: number;
   vdy: number;
+  vscale: number;
 };
 
 export type Cloud = {
@@ -30,5 +33,13 @@ export type Cloud = {
   y: number;
   /** Horizontal drift speed in px/s */
   vx: number;
+  /** Back clouds are smaller, slower and fainter, and drawn first */
+  layer: "back" | "front";
   puffs: Puff[];
+};
+
+export type EngineOptions = {
+  theme: Theme;
+  /** Same seed, same sky */
+  seed?: number;
 };
