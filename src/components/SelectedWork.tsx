@@ -7,7 +7,7 @@ import { ArrowUpRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { projects, type Project } from "@/data/projects";
+import { projects, SCREENSHOT_QUALITY, type Project } from "@/data/projects";
 import { Reveal } from "./Reveal";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -35,6 +35,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             width={cover.width}
             height={cover.height}
             sizes="(min-width: 1152px) 1100px, 100vw"
+            quality={SCREENSHOT_QUALITY}
             className="aspect-video w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
           />
         </div>
