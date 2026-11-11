@@ -1,3 +1,5 @@
+import { Boxes, CalendarDays, Cloud, NotebookPen, type LucideIcon } from "lucide-react";
+
 /** next/image quality for project screenshots; must be listed in images.qualities in next.config.ts */
 export const SCREENSHOT_QUALITY = 90;
 
@@ -22,12 +24,15 @@ export type Project = {
   outcome: string;
   links?: { live?: string; repos?: { label: string; href: string }[] };
   note?: string;
+  /** Desktop icon for the home page. Projects that have one are the featured ones. */
+  icon?: { label: string; glyph: LucideIcon };
   images: ProjectImage[];
 };
 
 export const projects: Project[] = [
   {
     slug: "vladimir",
+    icon: { label: "Vladimir", glyph: Boxes },
     title: "Vladimir",
     summary:
       "An enterprise fixed asset management system that tracks company assets from requisition and procurement all the way to disposal.",
@@ -101,6 +106,7 @@ export const projects: Project[] = [
   },
   {
     slug: "camac-web",
+    icon: { label: "CAMAC Web", glyph: CalendarDays },
     title: "CAMAC Web",
     summary:
       "A shareable events and announcements calendar for my church, built so every event link turns into a clean preview card when it's posted to Facebook or Messenger.",
@@ -210,6 +216,7 @@ export const projects: Project[] = [
   },
   {
     slug: "cleos-transaction-tracker",
+    icon: { label: "Cleo's Tracker", glyph: NotebookPen },
     title: "Cleo's Transaction Tracker",
     summary:
       "An offline Android app that replaces a family shop's paper notebook. It records GCash, mobile load and water sales, tracks who owes what, and checks the cash drawer at the end of the day.",
@@ -273,6 +280,7 @@ export const projects: Project[] = [
   },
   {
     slug: "deskcloud",
+    icon: { label: "Deskcloud", glyph: Cloud },
     title: "Deskcloud",
     summary:
       "A wallpaper concept where clouds drift across a desktop and part around the icons, built as a live, draggable demo on a hand-written Canvas 2D engine.",
@@ -469,6 +477,12 @@ export const projects: Project[] = [
     ],
   },
 ];
+
+/** Shown as cards in Selected Work, and as icons on the home page */
+export const featuredProjects = projects.filter((p) => p.icon);
+
+/** Listed under "also built"; each still has its own case-study page */
+export const otherProjects = projects.filter((p) => !p.icon);
 
 export function getProject(slug: string) {
   return projects.find((p) => p.slug === slug);
