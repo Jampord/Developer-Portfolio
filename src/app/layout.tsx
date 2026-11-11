@@ -2,10 +2,6 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque, Geist, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import "./globals.css";
-import { Footer } from "@/components/Footer";
-import { Nav } from "@/components/Navbar";
-import { SmoothScroll } from "@/components/SmoothScroll";
-import { FrameShell } from "@/components/FrameShell";
 import { site } from "@/lib/site";
 import { siteUrl } from "@/lib/url";
 import { Analytics } from "@vercel/analytics/next";
@@ -55,23 +51,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <DeferredCursor />
           <DeferredCommandPalette />
-          <SmoothScroll>
-            <a
-              href="#main"
-              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-60 focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-background"
-            >
-              Skip to content
-            </a>
-            <div className="min-h-screen bg-frame p-3 md:p-6">
-              <div className="min-h-[calc(100vh-1.5rem)] rounded-4xl bg-background md:min-h-[calc(100vh-3rem)]">
-                <FrameShell>
-                  <Nav />
-                  <main id="main">{children}</main>
-                  <Footer />
-                </FrameShell>
-              </div>
-            </div>
-          </SmoothScroll>
+          {/* Each route group's layout adds its own shell: (site) the portfolio frame, (lab) a bare page */}
+          {children}
         </ThemeProvider>
         <Analytics />
         <SpeedInsights />
