@@ -87,23 +87,8 @@ export function SelectedWork() {
 
       mm.add(STACK_QUERY, () => {
         const items = gsap.utils.toArray<HTMLElement>("[data-stack-item]");
-        const header = root.current?.querySelector("[data-stack-header]");
 
-        if (header && items[0]) {
-          gsap.to(header, {
-            opacity: 0,
-            y: 0,
-            scale: 0.97,
-            ease: "none",
-            scrollTrigger: {
-              trigger: items[0],
-              start: "top 25%",
-              end: `top ${STICKY_BASE}px`,
-              scrub: true,
-            },
-          });
-        }
-
+        // Each card scales back and dims as the next one covers it
         items.forEach((item, i) => {
           const next = items[i + 1];
           if (!next) return; // the last card has nothing covering it
@@ -123,6 +108,24 @@ export function SelectedWork() {
             .to(inner, { scale: 0.94, ease: "none" }, 0)
             .to(shade, { opacity: 0.55, ease: "none" }, 0);
         });
+
+        // Heading fades as the first card covers it
+        const header = root.current?.querySelector("[data-stack-header]");
+        if (header && items[0]) {
+          gsap.to(header, {
+            opacity: 0,
+            y: 0,
+            scale: 0.97,
+            ease: "none",
+            scrollTrigger: {
+              trigger: items[0],
+              start: "top 25%",
+              end: `top ${STICKY_BASE}px`,
+              scrub: true,
+            },
+          });
+        }
+        // After the last card, the finished stack simply scrolls away with the list
       });
 
       return () => mm.revert();
