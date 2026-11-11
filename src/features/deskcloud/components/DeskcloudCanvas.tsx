@@ -5,17 +5,9 @@ import { useTheme } from "next-themes";
 import { createEngine, type Engine } from "../engine/engine";
 import type { Mode, Rect } from "../engine/types";
 import { sky } from "../themes";
-import type { Rgb } from "../themes/types";
+import { skyBackgroundClass, skyBackgroundStyle } from "./demoFrame";
 
 const MAX_DPR = 2;
-
-const gradient = (top: Rgb, bottom: Rgb) => `linear-gradient(rgb(${top.join(" ")}), rgb(${bottom.join(" ")}))`;
-
-// The same sky as a CSS gradient, shown under the canvas until its first frame is drawn
-const placeholder = {
-  "--sky-day": gradient(sky.palettes.day.skyTop, sky.palettes.day.skyBottom),
-  "--sky-night": gradient(sky.palettes.night.skyTop, sky.palettes.night.skyBottom),
-} as React.CSSProperties;
 
 /** next-themes puts the class on <html> before React loads, so this is right from the first paint */
 const currentMode = (): Mode => (document.documentElement.classList.contains("dark") ? "night" : "day");
@@ -50,9 +42,22 @@ export function DeskcloudCanvas({ obstacles, className = "" }: Props) {
     onMotion();
     motion.addEventListener("change", onMotion);
 
+    // No animation work while the canvas is scrolled away or the tab is hidden
+    let onScreen = true;
+    const syncPause = () => (onScreen && !document.hidden ? engine.resume() : engine.pause());
+    const visibility = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting;
+      syncPause();
+    });
+    visibility.observe(canvas);
+    document.addEventListener("visibilitychange", syncPause);
+    syncPause();
+
     return () => {
       resize.disconnect();
+      visibility.disconnect();
       motion.removeEventListener("change", onMotion);
+      document.removeEventListener("visibilitychange", syncPause);
       engine.destroy();
       engineRef.current = null;
     };
@@ -71,8 +76,8 @@ export function DeskcloudCanvas({ obstacles, className = "" }: Props) {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      style={placeholder}
-      className={`bg-(image:--sky-day) dark:bg-(image:--sky-night) ${className}`}
+      style={skyBackgroundStyle}
+      className={`${skyBackgroundClass} ${className}`}
     />
   );
 }

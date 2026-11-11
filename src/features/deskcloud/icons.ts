@@ -28,6 +28,17 @@ export const INITIAL_ICONS: readonly DesktopIconData[] = [
   { id: "todo", label: labels.todo, glyph: ListTodo, action: { type: "wiggle" } },
 ];
 
+/** Desktops narrower than this (in px) start with the compact set */
+export const COMPACT_BELOW = 640;
+
+/** The icons kept on small screens, in the same order as the full set */
+const COMPACT_IDS = new Set(["resume", "github", "case-study", "notes"]);
+
+/** The starting set for a desktop of this width (used on first layout and on Reset) */
+export function initialIcons(width: number): readonly DesktopIconData[] {
+  return width < COMPACT_BELOW ? INITIAL_ICONS.filter((i) => COMPACT_IDS.has(i.id)) : INITIAL_ICONS;
+}
+
 export const MAX_ICONS = 12;
 
 export function newFileIcon(n: number): DesktopIconData {
