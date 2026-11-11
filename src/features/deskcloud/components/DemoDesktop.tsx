@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { en } from "../content/en";
 import type { Rect, Size } from "../engine/types";
-import { INITIAL_ICONS, MAX_ICONS, newFileIcon } from "../icons";
+import { MAX_ICONS, initialIcons, newFileIcon } from "../icons";
 import {
   ICON_SIZE,
   fitIntoGrid,
@@ -18,16 +18,18 @@ import {
   type Direction,
   type SlotGrid,
 } from "../slots";
+import { DEMO_FRAME_CLASS, TASKBAR_CLASS, TASKBAR_HEIGHT } from "./demoFrame";
 import { DeskcloudCanvas } from "./DeskcloudCanvas";
 import { DemoToolbar } from "./DemoToolbar";
 import { IconLayer, type Drag, type PlacedIcon } from "./IconLayer";
 
-const TASKBAR_HEIGHT = 52;
 const t = en.demo;
 
-function initialLayout(grid: SlotGrid): PlacedIcon[] {
-  const slots = fitIntoGrid(grid, initialSlots(INITIAL_ICONS.length, grid));
-  return INITIAL_ICONS.map((icon, i) => ({ ...icon, slot: slots[i] }));
+/** The starting icons for this desktop width (fewer on small screens), laid out column by column */
+function initialLayout(width: number, grid: SlotGrid): PlacedIcon[] {
+  const set = initialIcons(width);
+  const slots = fitIntoGrid(grid, initialSlots(set.length, grid));
+  return set.map((icon, i) => ({ ...icon, slot: slots[i] }));
 }
 
 function refit(icons: PlacedIcon[], grid: SlotGrid): PlacedIcon[] {
@@ -63,7 +65,7 @@ export function DemoDesktop() {
       const { width, height } = entry.contentRect;
       const next = slotGrid(width, height);
       setSize({ width, height });
-      setIcons((prev) => (prev ? refit(prev, next) : initialLayout(next)));
+      setIcons((prev) => (prev ? refit(prev, next) : initialLayout(width, next)));
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -175,7 +177,7 @@ export function DemoDesktop() {
     nextFileNumber.current = 1;
     setDrag(null);
     setWiggles({});
-    setIcons(initialLayout(grid));
+    setIcons(initialLayout(size.width, grid));
     setAnnouncement(t.announce.reset);
   };
 
@@ -205,7 +207,7 @@ type ShellProps = {
  */
 function Shell({ desktopRef, obstacles, announcement, icons, toolbar }: ShellProps) {
   return (
-    <div className="relative h-[85svh] min-h-[560px] w-full overflow-hidden">
+    <div className={DEMO_FRAME_CLASS}>
       <DeskcloudCanvas obstacles={obstacles} className="absolute inset-0 block h-full w-full" />
       <div
         ref={desktopRef}
@@ -216,7 +218,7 @@ function Shell({ desktopRef, obstacles, announcement, icons, toolbar }: ShellPro
       >
         {icons}
       </div>
-      <div style={{ height: TASKBAR_HEIGHT }} className="absolute inset-x-0 bottom-0 bg-sky-950/25 backdrop-blur-sm">
+      <div style={{ height: TASKBAR_HEIGHT }} className={TASKBAR_CLASS}>
         {toolbar}
       </div>
       <p role="status" className="sr-only">
