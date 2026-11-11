@@ -29,7 +29,7 @@ export function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      if (!res.ok) throw new Error("Request failed");
+      // Check the rate limit first, so visitors see the "try again later" message
       if (res.status === 429) {
         setStatus("limited");
         return;
