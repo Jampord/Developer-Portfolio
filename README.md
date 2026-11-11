@@ -8,6 +8,7 @@ Personal portfolio of **John Ford Actub**, a front-end developer with 2 years of
 
 ## Highlights
 
+- **Deskcloud** ([`/lab/deskcloud`](https://johnfordactub.vercel.app/lab/deskcloud)) — a wallpaper concept where clouds part around draggable desktop icons, on a hand-written Canvas 2D engine with unit-tested logic, day and night skies, and a waitlist
 - **Scroll-driven motion** — Lenis smooth scrolling with GSAP ScrollTrigger, including pinned project cards that stack over one another
 - **Hero intro in pure CSS**, so the name paints immediately and doesn't depend on JavaScript
 - **Light and dark themes** in a teal palette, following the system setting with a manual toggle
@@ -68,6 +69,7 @@ Without the Upstash variables the form still works, with rate limiting turned of
 | `npm run start`     | Serve the production build                   |
 | `npm run lint`      | Run ESLint                                   |
 | `npm run typecheck` | Run the TypeScript compiler without emitting |
+| `npm test`          | Run the unit tests (Vitest)                  |
 
 ## Project structure
 
