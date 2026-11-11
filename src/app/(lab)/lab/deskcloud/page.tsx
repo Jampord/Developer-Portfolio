@@ -1,28 +1,38 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { LazyDemoDesktop } from "@/features/deskcloud/components/LazyDemoDesktop";
+import { DeskcloudHero } from "@/features/deskcloud/components/DeskcloudHero";
+import { Faq } from "@/features/deskcloud/components/Faq";
+import { Features } from "@/features/deskcloud/components/Features";
+import { HowItWorks } from "@/features/deskcloud/components/HowItWorks";
+import { WaitlistSection } from "@/features/deskcloud/components/WaitlistSection";
 import { en } from "@/features/deskcloud/content/en";
+import { site } from "@/lib/site";
 
-// Work in progress: the live demo until the full page lands (see docs/deskcloud-plan.md)
+const { title, description } = en.meta;
+
 export const metadata: Metadata = {
-  title: "Deskcloud",
+  title,
+  description,
   alternates: { canonical: "/lab/deskcloud" },
+  openGraph: {
+    type: "website",
+    siteName: site.name,
+    title: `${title} — ${site.name}`,
+    description,
+    url: "/lab/deskcloud",
+  },
+  twitter: { card: "summary_large_image", title: `${title} — ${site.name}`, description },
+  // Kept out of search until the page is listed in the sitemap
   robots: { index: false },
 };
 
 export default function DeskcloudPage() {
-  const t = en.preview;
   return (
-    <>
-      <LazyDemoDesktop />
-      <div className="mx-auto flex w-[calc(100%-2rem)] max-w-6xl flex-col items-start gap-3 py-10">
-        <p className="font-mono text-sm text-muted">{t.eyebrow}</p>
-        <h1 className="font-display text-4xl font-semibold tracking-tight md:text-6xl">{t.title}</h1>
-        <p className="text-muted">{t.body}</p>
-        <Link href="/" className="text-primary underline-offset-4 hover:underline">
-          {t.back}
-        </Link>
-      </div>
-    </>
+    <div className="mx-auto w-[calc(100%-2rem)] max-w-6xl">
+      <DeskcloudHero />
+      <HowItWorks />
+      <Features />
+      <Faq />
+      <WaitlistSection />
+    </div>
   );
 }
