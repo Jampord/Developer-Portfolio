@@ -1,52 +1,86 @@
 export const bio = [
   "I'm a Frontend Developer with around 2 years of professional experience building responsive, user-friendly web applications. I got into front-end development because I enjoy turning ideas and designs into functional interfaces while solving real problems through code.",
-  "I primarily work with React and TypeScript, and I'm always looking to improve by building projects, learning modern development practices and exploring new technologies. My goal is to keep growing as a developer while creating clean, maintainable and reliable applications.",
+  "I mainly work in React and TypeScript. On my own projects that's grown into full-stack Next.js apps with PostgreSQL and Prisma, and an offline Android app built with React Native and Expo. I'm always looking to improve by building things real people use and learning modern development practices, and my goal is to keep creating clean, maintainable and reliable applications.",
 ];
 
 export const skillGroups = [
   {
     title: "Frontend",
-    items: ["React.js", "Next.js", "TypeScript", "JavaScript (ES6+)", "HTML5", "CSS3", "SCSS"],
+    items: [
+      "React",
+      "Next.js",
+      "TypeScript",
+      "JavaScript (ES6+)",
+      "HTML",
+      "CSS",
+      "SCSS",
+      "Tailwind CSS",
+      "Canvas 2D",
+      "PWA",
+    ],
   },
   {
     title: "React ecosystem",
     items: [
       "Redux Toolkit",
       "RTK Query",
-      "Tanstack Query",
-      "Axios",
-      "React Hook Form",
-      "Yup",
-      "Zod",
+      "TanStack Query",
       "Zustand",
+      "React Router",
+      "React Hook Form",
+      "Zod",
+      "Yup",
       "Material UI",
       "shadcn/ui",
-      "React Router",
-      "Tailwind CSS",
+      "Radix UI",
+      "Axios",
     ],
   },
-  { title: "Backend", items: ["Node.js", "Express.js", "MySQL", "MongoDB"] },
   {
-    title: "Tools & workflow",
+    title: "Backend & data",
+    items: [
+      "Node.js",
+      "Express",
+      "Server Actions",
+      "PostgreSQL",
+      "MySQL",
+      "MongoDB",
+      "SQLite",
+      "Prisma",
+      "Drizzle ORM",
+      "Redis",
+      "Socket.IO",
+      "Auth.js",
+    ],
+  },
+  {
+    title: "Mobile",
+    items: ["React Native", "Expo", "Expo Router", "Reanimated", "EAS Build"],
+  },
+  {
+    title: "Testing & CI",
+    items: ["Vitest", "Playwright", "ESLint", "GitHub Actions", "Lighthouse"],
+  },
+  {
+    title: "Tools & services",
     items: [
       "Git",
       "GitHub",
       "Vite",
-      "ESLint",
-      "Vitest",
-      "VS Code",
-      "Chrome DevTools",
-      "React DevTools",
-      "Lighthouse",
       "Figma",
       "Postman",
       "Apidog",
       "Swagger",
+      "Vercel",
+      "Cloudinary",
+      "Clerk",
+      "Resend",
+      "Sentry",
     ],
   },
 ];
 
-export const exploring = ["PostgreSQL", "Drizzle ORM", "Playwright"];
+export const exploring = ["React Native testing", "Offline sync"];
 
 export const experience = [
   {
