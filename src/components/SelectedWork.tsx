@@ -8,6 +8,8 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { projects, SCREENSHOT_QUALITY, type Project } from "@/data/projects";
+import { isPortrait, splitCover } from "@/lib/screenshots";
+import { PhoneScreens } from "./PhoneScreens";
 import { Reveal } from "./Reveal";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -18,7 +20,8 @@ const STICKY_BASE = 96; // 6rem, in px
 const STICKY_STEP = 16; // 1rem, in px
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
-  const cover = project.images[0];
+  const { cover } = splitCover(project.images);
+  const isPhoneCover = cover.length > 0 && isPortrait(cover[0]);
   const tags = project.stack.flatMap((g) => g.items).slice(0, 5);
 
   return (
@@ -27,17 +30,27 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       data-cursor="View"
       className="group relative origin-top overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 transition-colors hover:border-primary/50 md:p-6"
     >
-      {cover && (
+      {cover.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-foreground/10">
-          <Image
-            src={cover.src}
-            alt={cover.alt}
-            width={cover.width}
-            height={cover.height}
-            sizes="(min-width: 1152px) 1100px, 100vw"
-            quality={SCREENSHOT_QUALITY}
-            className="aspect-video w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
-          />
+          {isPhoneCover ? (
+            // Same box as a desktop cover; the phones are cropped at the bottom
+            <PhoneScreens
+              images={cover}
+              sizes="(min-width: 1152px) 300px, (min-width: 640px) 28vw, 40vw"
+              className="aspect-video px-4 pt-4 transition-transform duration-500 group-hover:scale-[1.02] sm:px-8 sm:pt-6 lg:aspect-auto lg:h-[40vh]"
+              phoneClassName="w-[40%] max-w-[300px] sm:w-[28%]"
+            />
+          ) : (
+            <Image
+              src={cover[0].src}
+              alt={cover[0].alt}
+              width={cover[0].width}
+              height={cover[0].height}
+              sizes="(min-width: 1152px) 1100px, 100vw"
+              quality={SCREENSHOT_QUALITY}
+              className="aspect-video w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
+            />
+          )}
         </div>
       )}
 
