@@ -1,36 +1,50 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import { getRedis } from "./redis";
 
 type Limiters = { perIp: Ratelimit; global: Ratelimit };
 
-// undefined = not created yet, null = not configured
-let limiters: Limiters | null | undefined;
+type LimiterConfig = {
+  perIp: ReturnType<typeof Ratelimit.slidingWindow>;
+  global: ReturnType<typeof Ratelimit.fixedWindow>;
+  prefix: string;
+};
 
-function getLimiters(): Limiters | null {
-  if (limiters !== undefined) return limiters;
+const configs = {
+  contact: {
+    perIp: Ratelimit.slidingWindow(3, "10 m"),
+    global: Ratelimit.fixedWindow(30, "1 d"),
+    prefix: "portfolio:contact",
+  },
+  waitlist: {
+    perIp: Ratelimit.slidingWindow(5, "10 m"),
+    global: Ratelimit.fixedWindow(200, "1 d"),
+    prefix: "portfolio:waitlist",
+  },
+} satisfies Record<string, LimiterConfig>;
 
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
+type LimiterName = keyof typeof configs;
+
+// Per form: undefined = not created yet, null = not configured
+const limiters: Partial<Record<LimiterName, Limiters | null>> = {};
+
+function getLimiters(name: LimiterName): Limiters | null {
+  const cached = limiters[name];
+  if (cached !== undefined) return cached;
+
+  const redis = getRedis();
+  if (!redis) {
     console.warn("Rate limiting is off: Upstash environment variables are missing");
-    limiters = null;
+    limiters[name] = null;
     return null;
   }
 
-  const redis = new Redis({ url, token });
-  limiters = {
-    perIp: new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(3, "10 m"),
-      prefix: "portfolio:contact:ip",
-    }),
-    global: new Ratelimit({
-      redis,
-      limiter: Ratelimit.fixedWindow(30, "1 d"),
-      prefix: "portfolio:contact:global",
-    }),
+  const { perIp, global, prefix } = configs[name];
+  const created = {
+    perIp: new Ratelimit({ redis, limiter: perIp, prefix: `${prefix}:ip` }),
+    global: new Ratelimit({ redis, limiter: global, prefix: `${prefix}:global` }),
   };
-  return limiters;
+  limiters[name] = created;
+  return created;
 }
 
 export function getClientIp(req: Request): string {
@@ -44,8 +58,8 @@ export type LimitResult = { ok: true } | { ok: false; retryAfter: number };
 
 const secondsUntil = (resetMs: number) => Math.max(1, Math.ceil((resetMs - Date.now()) / 1000));
 
-export async function checkContactLimit(ip: string): Promise<LimitResult> {
-  const l = getLimiters();
+async function check(name: LimiterName, ip: string): Promise<LimitResult> {
+  const l = getLimiters(name);
   if (!l) return { ok: true };
 
   try {
@@ -62,3 +76,9 @@ export async function checkContactLimit(ip: string): Promise<LimitResult> {
     return { ok: true };
   }
 }
+
+/** Contact form: 3 per IP per 10 minutes, 30 a day overall */
+export const checkContactLimit = (ip: string) => check("contact", ip);
+
+/** Deskcloud waitlist: 5 per IP per 10 minutes, 200 a day overall */
+export const checkWaitlistLimit = (ip: string) => check("waitlist", ip);

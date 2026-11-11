@@ -107,8 +107,23 @@ export const en = {
     title: "Join the waitlist",
     body: "If Deskcloud ever becomes a real Windows app, you'll be the first to know.",
     privacy: "I'll only use your email to tell you if Deskcloud becomes a real app. No spam, no sharing.",
-    /** Shown until the sign-up form is ready */
-    comingSoon: "The sign-up form opens soon.",
+    form: {
+      emailLabel: "// email",
+      placeholder: "you@example.com",
+      submit: "Join the waitlist",
+      sending: "Joining…",
+      /** Hidden honeypot field; people never see it */
+      honeypotLabel: "Website",
+    },
+    status: {
+      done: "You're on the list. I'll email you if Deskcloud becomes a real app.",
+      error: "Something went wrong. Please try again in a moment.",
+      limited: "That's a lot of sign-ups in a short time. Please try again later.",
+    },
+    errors: {
+      email: "Please enter a valid email",
+      tooLong: "Please keep your email under 120 characters",
+    },
   },
 
   footer: {
