@@ -22,10 +22,8 @@ export type Engine = {
 
 /** Enough fixed steps for the springs to come to rest */
 const SETTLE_STEPS = 90;
-/** Day ↔ night cross-fade length, in seconds */
-const MODE_FADE = 0.8;
 
-export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1 }: EngineOptions): Engine {
+export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode = "day" }: EngineOptions): Engine {
   const ctx = canvas.getContext("2d");
 
   let size: Size = { width: 0, height: 0 };
@@ -35,8 +33,9 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1 }: Eng
   let clouds: Cloud[] = [];
   let accents: Accents = createAccents(size, field, theme, mulberry32(seed));
 
-  let modeT = 0;
-  let modeTarget = 0;
+  // Start in the right mode so the first paint never flashes the other sky
+  let modeTarget = mode === "night" ? 1 : 0;
+  let modeT = modeTarget;
   let reducedMotion = false;
   let paused = false;
   let destroyed = false;
@@ -70,9 +69,9 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1 }: Eng
 
   function draw() {
     if (!ctx || destroyed || size.width <= 0 || size.height <= 0) return;
-    const { day, night = day } = theme.palettes;
+    const { day, night } = theme.palettes;
     const t = modeT * modeT * (3 - 2 * modeT); // smoothstep
-    renderScene(ctx, dpr, { size, palette: lerpPalette(day, night, t), clouds, accents, theme });
+    renderScene(ctx, dpr, { size, palette: lerpPalette(day, night, t), night: t, clouds, accents, theme });
   }
 
   function frame(dt: number) {
@@ -80,7 +79,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1 }: Eng
     stepClouds(clouds, dt, sim);
     stepAccents(accents, dt, sim);
     if (modeT !== modeTarget) {
-      const step = dt / MODE_FADE;
+      const step = dt / theme.modeFade;
       modeT = modeT < modeTarget ? Math.min(modeTarget, modeT + step) : Math.max(modeTarget, modeT - step);
     }
     draw();

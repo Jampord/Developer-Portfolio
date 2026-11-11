@@ -42,4 +42,6 @@ export type EngineOptions = {
   theme: Theme;
   /** Same seed, same sky */
   seed?: number;
+  /** Mode for the first paint (later changes cross-fade via setMode) */
+  mode?: Mode;
 };

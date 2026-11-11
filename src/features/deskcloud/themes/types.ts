@@ -2,15 +2,24 @@ export type Rgb = readonly [r: number, g: number, b: number];
 
 export type Range = readonly [min: number, max: number];
 
-/** Every colour the renderer draws with, for one time of day */
+/**
+ * Every colour the renderer draws with, for one time of day. Day and night use the
+ * same keys so the engine can cross-fade between them.
+ */
 export type Palette = {
   skyTop: Rgb;
   skyBottom: Rgb;
-  sun: Rgb;
-  sunGlow: Rgb;
+  /** The sun by day, the moon by night */
+  orb: Rgb;
+  orbGlow: Rgb;
+  /** Craters on the moon (only drawn at night) */
+  orbDetail: Rgb;
   cloud: Rgb;
   cloudShadow: Rgb;
+  /** Only drawn by day */
   bird: Rgb;
+  /** Only drawn at night */
+  star: Rgb;
 };
 
 type CloudLayer = {
@@ -23,8 +32,7 @@ type CloudLayer = {
 export type Theme = {
   id: string;
   name: string;
-  /** Night arrives with the day/night work; until then the day palette is used for both */
-  palettes: { day: Palette; night?: Palette };
+  palettes: { day: Palette; night: Palette };
 
   /** Occupancy grid cell size in px */
   cellSize: number;
@@ -38,6 +46,8 @@ export type Theme = {
   minScale: number;
   /** Spring stiffness for reflow, in 1/s² (higher = snappier) */
   stiffness: number;
+  /** Day ↔ night cross-fade length, in seconds */
+  modeFade: number;
 
   clouds: {
     puffCount: Range;
@@ -47,14 +57,20 @@ export type Theme = {
     band: Range;
     /** How much back clouds fade toward the sky colour (0–1) */
     backFade: number;
+    /** How far the shadow pass sits below each puff, as a fraction of its radius */
+    shadowOffset: number;
     back: CloudLayer;
     front: CloudLayer;
   };
 
-  sun: {
+  /** Sun by day, moon by night: same spot, same size */
+  orb: {
     radius: number;
-    /** How quickly the sun eases to a new spot, in 1/s */
+    /** How quickly it eases to a new spot, in 1/s */
     ease: number;
+    /** Glow size as a multiple of the radius, and its opacity */
+    glowScale: number;
+    glowAlpha: number;
   };
 
   birds: {
@@ -63,5 +79,17 @@ export type Theme = {
     speed: Range;
     /** Half the wingspan in px */
     size: number;
+    lineWidth: number;
+    alpha: number;
+  };
+
+  stars: {
+    /** Stars per 100,000 px² of canvas */
+    density: number;
+    /** Stars sit in the top part of the sky, as a fraction of the canvas height */
+    band: number;
+    radius: Range;
+    /** Twinkle speed in radians per second */
+    twinkle: Range;
   };
 };
