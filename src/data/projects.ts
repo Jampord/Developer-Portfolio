@@ -215,6 +215,72 @@ export const projects: Project[] = [
       },
     ],
   },
+  {
+    slug: "deskcloud",
+    title: "Deskcloud",
+    summary:
+      "A wallpaper concept where clouds drift across a desktop and part around the icons, built as a live, draggable demo on a hand-written Canvas 2D engine.",
+    client: "Personal project",
+    role: "Design & front-end",
+    year: "2026",
+    stack: [
+      { group: "Core", items: ["Next.js 16", "React 19", "TypeScript"] },
+      { group: "Rendering", items: ["Canvas 2D (hand-written)", "requestAnimationFrame"] },
+      { group: "UI", items: ["Tailwind CSS 4", "next-themes", "lucide-react"] },
+      { group: "Waitlist", items: ["Upstash Redis", "Resend", "Zod", "React Hook Form"] },
+      { group: "Quality", items: ["Vitest", "ESLint", "GitHub Actions CI"] },
+    ],
+    problem:
+      "Desktop wallpapers ignore what's on your desktop: your files sit on top of whatever the picture happens to have there. I wanted to try the opposite. Could the scenery make room for your files instead, and move out of the way when you rearrange them?",
+    approach: [
+      {
+        title: "Engine",
+        body: "The icons become an occupancy grid. A two-pass chamfer distance transform turns that grid into a clearance field: how far every point is from the nearest icon, and which way leads away from it. Each cloud is a cluster of puffs, and every puff eases toward a target on a critically damped spring, sliding aside where the field says it's too close and shrinking only by what the push can't clear. I wrote it in plain Canvas 2D with no library, because the scene is a few dozen flat circles and I wanted to understand and own every frame.",
+      },
+      {
+        title: "Icons",
+        body: "The icons are real HTML buttons layered over the canvas, so they're focusable and have proper names. They snap to a Windows-style slot grid and can be dragged with a mouse, finger or pen. While you drag, the icon's box is fed to the engine once per frame, so the clouds reflow live instead of waiting for the drop.",
+      },
+      {
+        title: "Performance",
+        body: "The sky renders at 30 frames per second at most, with the pixel ratio capped at 2. The loop stops completely when the canvas is scrolled out of view or the tab is hidden, and I confirmed in the browser that no frames are drawn or requested then. The whole demo loads lazily, behind a placeholder of the same size, so the headline and text arrive first.",
+      },
+      {
+        title: "Accessibility",
+        body: "Arrow keys move the focused icon one slot and Enter opens it, with each move announced to screen readers. With reduced motion on, the sky stays still and settles instantly whenever an icon lands somewhere new. The canvas is purely decorative and hidden from assistive tech, and the headline is server-rendered.",
+      },
+      {
+        title: "Waitlist",
+        body: "The sign-up reuses the contact form's patterns: Zod validation, a honeypot, and per-IP plus global rate limits on a shared Redis client. Addresses go into a Redis set, so a repeat sign-up is harmless, and I'm only notified the first time.",
+      },
+    ],
+    outcome:
+      "The most useful lesson was splitting the work cleanly: the grid, field and clouds are plain TypeScript with unit tests, and only the renderer and the loop touch the browser. A real Windows version could reuse the whole engine and only replace the renderer. Building it also taught me a lot about spring physics, distance fields, and keeping an animation cheap enough to leave running all day.",
+    links: {
+      live: "/lab/deskcloud",
+      repos: [{ label: "Source code", href: "https://github.com/Jampord/Developer-Portfolio" }],
+    },
+    images: [
+      {
+        src: "/projects/deskcloud/day.png",
+        alt: "Deskcloud demo by day: a blue sky with flat white clouds and a sun, with desktop icons down the left edge",
+        width: 1725,
+        height: 1140,
+      },
+      {
+        src: "/projects/deskcloud/parting.gif",
+        alt: "Animation: the GitHub icon is dragged into the sky, the clouds part around it, and it's dragged back",
+        width: 690,
+        height: 456,
+      },
+      {
+        src: "/projects/deskcloud/night.png",
+        alt: "Deskcloud demo at night: a dark blue sky with stars, moonlit clouds and a moon, with the same desktop icons",
+        width: 1725,
+        height: 1140,
+      },
+    ],
+  },
 ];
 
 export function getProject(slug: string) {

@@ -21,8 +21,6 @@ export const metadata: Metadata = {
     url: "/lab/deskcloud",
   },
   twitter: { card: "summary_large_image", title: `${title} — ${site.name}`, description },
-  // Kept out of search until the page is listed in the sitemap
-  robots: { index: false },
 };
 
 export default function DeskcloudPage() {
