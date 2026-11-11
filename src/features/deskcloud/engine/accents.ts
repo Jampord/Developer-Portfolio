@@ -3,7 +3,8 @@ import { between, intBetween, type CloudContext } from "./clouds";
 import type { Field } from "./field";
 import type { Size, Vec2 } from "./types";
 
-export type Sun = { x: number; y: number; tx: number; ty: number };
+/** The sun by day and the moon by night: one position, eased toward its target */
+export type Orb = { x: number; y: number; tx: number; ty: number };
 
 export type Bird = {
   x: number;
@@ -17,16 +18,28 @@ export type Bird = {
   visibility: number;
 };
 
-export type Accents = { sun: Sun; birds: Bird[] };
+export type Star = {
+  x: number;
+  y: number;
+  r: number;
+  /** Twinkle phase and speed, in radians and radians per second */
+  phase: number;
+  speed: number;
+  /** False while an icon (or its padding) covers the star */
+  visible: boolean;
+};
+
+export type Accents = { orb: Orb; birds: Bird[]; stars: Star[] };
 
 const LANE_GAP = 48;
 const FLAP_RATE = 9; // radians per second
+const TAU = Math.PI * 2;
 
 /**
  * The roomiest spot in the top third of the canvas, kept a little in from the edges.
  * With nothing on the canvas it sits top-right.
  */
-export function findSunSpot(field: Field, size: Size, radius: number): Vec2 {
+export function findOrbSpot(field: Field, size: Size, radius: number): Vec2 {
   const margin = radius * 1.6;
   const fallback = {
     x: clamp(size.width * 0.78, margin, size.width - margin),
@@ -83,62 +96,91 @@ function chooseLanes(field: Field, size: Size, count: number, rng: () => number)
   return lanes.sort((a, b) => a - b);
 }
 
+/** A seeded star field over the top part of the sky; the count follows the canvas area */
+function createStars(size: Size, field: Field, theme: Theme, rng: () => number): Star[] {
+  const area = size.width * size.height;
+  const count = area > 0 ? Math.round((theme.stars.density * area) / 100_000) : 0;
+  const stars = Array.from({ length: count }, () => ({
+    x: rng() * size.width,
+    y: rng() * size.height * theme.stars.band,
+    r: between(rng, theme.stars.radius),
+    phase: rng() * TAU,
+    speed: between(rng, theme.stars.twinkle),
+    visible: true,
+  }));
+  updateStarVisibility(stars, field);
+  return stars;
+}
+
+/** Stars inside an icon's padded box are skipped */
+function updateStarVisibility(stars: Star[], field: Field) {
+  for (const s of stars) s.visible = field.sample(s.x, s.y) > 0;
+}
+
 export function createAccents(size: Size, field: Field, theme: Theme, rng: () => number): Accents {
-  const spot = findSunSpot(field, size, theme.sun.radius);
+  const spot = findOrbSpot(field, size, theme.orb.radius);
   const count = intBetween(rng, theme.birds.count);
   const lanes = chooseLanes(field, size, count, rng);
 
+  const birds = lanes.map((laneY) => ({
+    x: rng() * size.width,
+    y: laneY,
+    laneY,
+    speed: between(rng, theme.birds.speed),
+    phase: rng() * TAU,
+    visibility: 1,
+  }));
+
   return {
-    sun: { x: spot.x, y: spot.y, tx: spot.x, ty: spot.y },
-    birds: lanes.map((laneY) => ({
-      x: rng() * size.width,
-      y: laneY,
-      laneY,
-      speed: between(rng, theme.birds.speed),
-      phase: rng() * Math.PI * 2,
-      visibility: 1,
-    })),
+    orb: { x: spot.x, y: spot.y, tx: spot.x, ty: spot.y },
+    birds,
+    stars: createStars(size, field, theme, rng),
   };
 }
 
-/** Pick new spots for the sun and bird lanes after the icons move; they ease there in stepAccents */
+/** After the icons move: new spots for the orb and bird lanes (eased in stepAccents), and which stars show */
 export function updateAccentTargets(accents: Accents, field: Field, size: Size, theme: Theme): void {
-  const spot = findSunSpot(field, size, theme.sun.radius);
-  accents.sun.tx = spot.x;
-  accents.sun.ty = spot.y;
+  const spot = findOrbSpot(field, size, theme.orb.radius);
+  accents.orb.tx = spot.x;
+  accents.orb.ty = spot.y;
 
   // Fixed seed: lanes depend only on where the icons are
   const lanes = chooseLanes(field, size, accents.birds.length, () => 0.5);
   const birds = [...accents.birds].sort((a, b) => a.laneY - b.laneY);
   birds.forEach((bird, i) => (bird.laneY = lanes[i]));
+
+  updateStarVisibility(accents.stars, field);
 }
 
 export function stepAccents(accents: Accents, dt: number, { field, size, theme }: CloudContext): void {
-  const ease = 1 - Math.exp(-theme.sun.ease * dt);
-  const { sun } = accents;
-  sun.x += (sun.tx - sun.x) * ease;
-  sun.y += (sun.ty - sun.y) * ease;
+  const ease = 1 - Math.exp(-theme.orb.ease * dt);
+  const { orb } = accents;
+  orb.x += (orb.tx - orb.x) * ease;
+  orb.y += (orb.ty - orb.y) * ease;
 
   const span = theme.birds.size * 2;
   for (const bird of accents.birds) {
     bird.x += bird.speed * dt;
     if (bird.x - span > size.width) bird.x = -span;
     bird.y += (bird.laneY - bird.y) * ease;
-    bird.phase = (bird.phase + FLAP_RATE * dt) % (Math.PI * 2);
+    bird.phase = (bird.phase + FLAP_RATE * dt) % TAU;
 
     const target = clamp((field.sample(bird.x, bird.y) - 8) / 32, 0, 1);
     bird.visibility += (target - bird.visibility) * Math.min(1, dt * 6);
   }
+
+  for (const star of accents.stars) star.phase = (star.phase + star.speed * dt) % TAU;
 }
 
-/** Jump straight to the targets (reduced motion, first paint) */
+/** Jump straight to the targets (reduced motion, first paint). Stars keep their twinkle phase. */
 export function settleAccents(accents: Accents, field?: Field): void {
-  accents.sun.x = accents.sun.tx;
-  accents.sun.y = accents.sun.ty;
+  accents.orb.x = accents.orb.tx;
+  accents.orb.y = accents.orb.ty;
   for (const bird of accents.birds) {
     bird.y = bird.laneY;
     if (field) bird.visibility = clamp((field.sample(bird.x, bird.y) - 8) / 32, 0, 1);
   }
+  if (field) updateStarVisibility(accents.stars, field);
 }
 
 function clamp(v: number, min: number, max: number): number {
