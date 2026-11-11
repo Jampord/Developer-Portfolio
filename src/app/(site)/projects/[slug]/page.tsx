@@ -4,7 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, ExternalLink } from "lucide-react";
 import { getProject, projects, SCREENSHOT_QUALITY } from "@/data/projects";
+import { groupGallery, isPortrait, splitCover } from "@/lib/screenshots";
 import { site } from "@/lib/site";
+import { PhoneScreens } from "@/components/PhoneScreens";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -39,8 +41,9 @@ export default async function ProjectPage({ params }: Props) {
 
   const index = projects.findIndex((p) => p.slug === slug);
   const next = projects.length > 1 ? projects[(index + 1) % projects.length] : null;
-  const cover = project.images[0];
-  const gallery = project.images.slice(1);
+  const { cover, gallery } = splitCover(project.images);
+  const isPhoneCover = cover.length > 0 && isPortrait(cover[0]);
+  const galleryBlocks = groupGallery(gallery);
 
   return (
     <article className="mx-auto w-[calc(100%-2rem)] max-w-6xl pb-12 pt-12">
@@ -88,18 +91,28 @@ export default async function ProjectPage({ params }: Props) {
         </div>
       </header>
 
-      {cover && (
+      {cover.length > 0 && (
         <div className="mt-12 overflow-hidden rounded-3xl border border-foreground/10">
-          <Image
-            src={cover.src}
-            alt={cover.alt}
-            width={cover.width}
-            height={cover.height}
-            sizes="(min-width: 1152px) 1100px, 100vw"
-            quality={SCREENSHOT_QUALITY}
-            priority
-            className="w-full"
-          />
+          {isPhoneCover ? (
+            <PhoneScreens
+              images={cover}
+              sizes="(min-width: 1152px) 320px, (min-width: 640px) 30vw, 45vw"
+              priority
+              className="px-4 py-8 sm:px-10 sm:py-12"
+              phoneClassName="w-[45%] max-w-[320px] sm:w-[30%]"
+            />
+          ) : (
+            <Image
+              src={cover[0].src}
+              alt={cover[0].alt}
+              width={cover[0].width}
+              height={cover[0].height}
+              sizes="(min-width: 1152px) 1100px, 100vw"
+              quality={SCREENSHOT_QUALITY}
+              priority
+              className="w-full"
+            />
+          )}
         </div>
       )}
 
@@ -169,21 +182,39 @@ export default async function ProjectPage({ params }: Props) {
         </section>
       </div>
 
-      {gallery.length > 0 && (
+      {galleryBlocks.length > 0 && (
         <section className="mt-16 grid gap-6" aria-label="Screenshots">
-          {gallery.map((img) => (
-            <div key={img.src} className="overflow-hidden rounded-3xl border border-foreground/10">
-              <Image
-                src={img.src}
-                alt={img.alt}
-                width={img.width}
-                height={img.height}
-                sizes="(min-width: 1152px) 1100px, 100vw"
-                quality={SCREENSHOT_QUALITY}
-                className="w-full"
-              />
-            </div>
-          ))}
+          {galleryBlocks.map((block) =>
+            block.kind === "wide" ? (
+              <div key={block.image.src} className="overflow-hidden rounded-3xl border border-foreground/10">
+                <Image
+                  src={block.image.src}
+                  alt={block.image.alt}
+                  width={block.image.width}
+                  height={block.image.height}
+                  sizes="(min-width: 1152px) 1100px, 100vw"
+                  quality={SCREENSHOT_QUALITY}
+                  className="w-full"
+                />
+              </div>
+            ) : (
+              // Phone screenshots: two per row on small screens, three from md up
+              <div key={block.images[0].src} className="flex flex-wrap justify-center gap-6">
+                {block.images.map((img) => (
+                  <Image
+                    key={img.src}
+                    src={img.src}
+                    alt={img.alt}
+                    width={img.width}
+                    height={img.height}
+                    sizes="(min-width: 1152px) 360px, (min-width: 768px) 32vw, 48vw"
+                    quality={SCREENSHOT_QUALITY}
+                    className="h-auto w-[calc(50%-0.75rem)] rounded-3xl border border-foreground/10 md:w-[calc(33.333%-1rem)]"
+                  />
+                ))}
+              </div>
+            ),
+          )}
         </section>
       )}
 

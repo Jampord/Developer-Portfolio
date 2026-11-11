@@ -91,6 +91,250 @@ export const projects: Project[] = [
         width: 2880,
         height: 1800,
       },
+      {
+        src: "/projects/vladimir/scanner.png",
+        alt: "Vladimir phone scanner pointed at an asset tag, with the session's scan progress at the bottom",
+        width: 824,
+        height: 1830,
+      },
+    ],
+  },
+  {
+    slug: "camac-web",
+    title: "CAMAC Web",
+    summary:
+      "A shareable events and announcements calendar for my church, built so every event link turns into a clean preview card when it's posted to Facebook or Messenger.",
+    client: "Personal project",
+    role: "Full-Stack Developer",
+    year: "2026",
+    stack: [
+      { group: "Core", items: ["Next.js 16", "React 19", "TypeScript", "Tailwind CSS 4"] },
+      { group: "UI", items: ["shadcn/ui", "Base UI", "lucide-react", "Sonner"] },
+      { group: "Data", items: ["PostgreSQL (Neon)", "Prisma 7", "Zod 4", "Server Actions"] },
+      { group: "Auth", items: ["Auth.js (Google sign-in)", "Role-based access"] },
+      { group: "Services", items: ["Cloudinary", "Nodemailer", "Sentry", "Vercel Cron"] },
+      { group: "Quality", items: ["Vitest", "Playwright", "ESLint", "GitHub Actions CI"] },
+    ],
+    problem:
+      "CAMAC – San Fernando is a church of around 50 people who meet every week. Event announcements lived in scattered Facebook posts and Messenger threads, so details got buried and people missed things. I volunteered to build one place for every event and announcement, designed around how the church already communicates: links shared to the Facebook page and the group chat.",
+    approach: [
+      {
+        title: "Recurring events",
+        body: "Events can repeat weekly with skipped dates, last all day, or span several days. Times are stored in UTC and shown in Manila time, and the agenda groups everything by week and month with a ministry filter. Adding an event to a calendar brings the whole series, minus the skipped dates, to Google Calendar or as an .ics file.",
+      },
+      {
+        title: "Built for sharing",
+        body: "Every event gets a generated 1200×630 preview card. The card is versioned, so an edited event never shows a stale image in Messenger. Admins can copy an announcement in the volunteers' own posting format or use the phone's share sheet, and printable QR pages put events on the bulletin board and on slides. Opens, copies and shares are counted without cookies and with bots excluded, so we can tell whether it's working.",
+      },
+      {
+        title: "Roles and access",
+        body: "Members sign in with Google against an allowlist. Admins, the prayer team, members and people managers each see different things, and every check happens on the server. Nobody can change their own access, and the last people manager can't be removed, so the church can't lock itself out.",
+      },
+      {
+        title: "Prayer requests",
+        body: "Anyone can send a prayer request, anonymously if they want, behind a honeypot and a per-IP rate limit. The prayer team moves each request from New to Prayed to Answered. Notification emails never include the request itself, and a daily job archives requests after 60 days and deletes them after a year.",
+      },
+      {
+        title: "Readable for everyone",
+        body: "The congregation spans all ages, so the app uses Atkinson Hyperlegible, a typeface designed for low-vision readers, with a palette taken from the church logo, light and dark modes, and a bottom tab bar on phones.",
+      },
+    ],
+    outcome:
+      "This was my first project with real stakeholders. I talked to the people who'd use it, wrote a brief, and set a measurable goal before writing code: 8 events shared over 4 weeks, averaging 15 or more opens each. I shipped it through 20 pull requests, with CI running type checks, lint, over 200 Vitest cases, a Playwright smoke test and a production build. It taught me to design around how people actually communicate, not how I'd like them to.",
+    links: {
+      live: "https://camac-sf-web.vercel.app",
+      repos: [{ label: "Source code", href: "https://github.com/Jampord/camac-sf-web" }],
+    },
+    images: [
+      {
+        src: "/projects/camac-web/home-top.png",
+        alt: "CAMAC Web home page on a phone: Sunday service at 9:00 AM, prayer meeting times, and directions",
+        width: 824,
+        height: 1678,
+      },
+      {
+        src: "/projects/camac-web/events-top.png",
+        alt: "Upcoming events on a phone, grouped by week, with a ministry filter",
+        width: 824,
+        height: 1678,
+      },
+      {
+        src: "/projects/camac-web/event-top.png",
+        alt: "Event page for a three-day youth camp, with Add to calendar and Open in Maps buttons",
+        width: 824,
+        height: 1678,
+      },
+      {
+        src: "/projects/camac-web/og-xmas.png",
+        alt: "Generated preview card for a Christmas service, as it appears when the link is shared",
+        width: 1200,
+        height: 630,
+      },
+      {
+        src: "/projects/camac-web/event-poster.png",
+        alt: "Event page showing the event's poster",
+        width: 824,
+        height: 1678,
+      },
+      {
+        src: "/projects/camac-web/event-cal.png",
+        alt: "Choosing between Google Calendar and another calendar when adding an event",
+        width: 824,
+        height: 1678,
+      },
+      {
+        src: "/projects/camac-web/schedule-in.png",
+        alt: "Sunday serving schedule for members: service leader, music team, Sunday school and after-service roles",
+        width: 824,
+        height: 1678,
+      },
+      {
+        src: "/projects/camac-web/admin-home.png",
+        alt: "Admin home with new prayer requests, the success metric panel, and the month's events",
+        width: 824,
+        height: 1678,
+      },
+      {
+        src: "/projects/camac-web/admin-new.png",
+        alt: "Admin form for creating a new event",
+        width: 824,
+        height: 1678,
+      },
+      {
+        src: "/projects/camac-web/admin-schedule-date.png",
+        alt: "Admin form for filling in the serving schedule for one Sunday",
+        width: 824,
+        height: 1678,
+      },
+    ],
+  },
+  {
+    slug: "cleos-transaction-tracker",
+    title: "Cleo's Transaction Tracker",
+    summary:
+      "An offline Android app that replaces a family shop's paper notebook. It records GCash, mobile load and water sales, tracks who owes what, and checks the cash drawer at the end of the day.",
+    client: "Personal project",
+    role: "Mobile Developer",
+    year: "2026",
+    note: "An Android app that isn't on a store yet. It's being piloted alongside the paper notebook it replaces, and the source code is public.",
+    stack: [
+      { group: "Core", items: ["Expo SDK 57", "React Native 0.86", "React 19", "TypeScript"] },
+      { group: "Navigation", items: ["Expo Router"] },
+      { group: "Data", items: ["SQLite (expo-sqlite)", "Drizzle ORM", "Drizzle Kit migrations"] },
+      { group: "Files", items: ["expo-file-system", "expo-sharing", "expo-document-picker"] },
+      { group: "UI", items: ["React Native Reanimated", "Ionicons"] },
+      { group: "Tooling", items: ["EAS Build", "ESLint"] },
+    ],
+    problem:
+      "Cleo runs a small family shop in the Philippines that handles GCash cash-in and cash-out, mobile load and mineral water. Everything went into a paper notebook: each transaction, its fee, who still owed money, and at the end of the day, whether the cash drawer and the GCash wallet added up. That's slow, easy to get wrong, and hard to look back through. I built an app that does the same job on her phone, works with no internet connection, and does the arithmetic for her.",
+    approach: [
+      {
+        title: "An entry form that knows the fees",
+        body: "As the amount is typed, the fee fills in from an editable fee table, and it stops filling in the moment she types her own. A cash-out fee can be added on top or deducted, and an \"At the counter\" panel shows exactly how much to hand over. Amounts above ₱10,000 need a manual fee before they can be saved.",
+      },
+      {
+        title: "Utang (credit)",
+        body: "Customers who owe money can pay in parts, by cash or GCash, and each payment goes to their oldest entries first or to one she picks. Once an entry has payments it's locked except for the name, so balances can't drift.",
+      },
+      {
+        title: "Cash check",
+        body: "Starting from the opening balances, the app works out how much cash and GCash there should be from every kind of entry, then shows Matches, Short ₱X or Over ₱X against what she counts.",
+      },
+      {
+        title: "Data she can't lose",
+        body: "Everything is stored on the phone in SQLite through Drizzle ORM. Money is kept in whole centavos, and totals are always calculated from the entries, never stored. She can back up the database through the share sheet, export every table to CSV, and restore a backup once it's been checked.",
+      },
+    ],
+    outcome:
+      "This was my first React Native app, and my first time designing for one specific person instead of \"users\". The hardest part wasn't the code but the rules: how fees work, where a partial payment goes, what counts as short. I kept all of that in plain TypeScript functions and documented every formula with worked examples, which made the app much easier to trust. Next on the roadmap are automated tests, weekly charts and an optional sync backend.",
+    links: {
+      repos: [{ label: "Source code", href: "https://github.com/Jampord/Cleos-Transaction-Tracker" }],
+    },
+    images: [
+      {
+        src: "/projects/cleos-transaction-tracker/today.jpg",
+        alt: "Today screen: ₱510 owed in utang, 7 gallons of water left, and the day's cash-in, cash-out, load and water entries with their fees",
+        width: 1220,
+        height: 2587,
+      },
+      {
+        src: "/projects/cleos-transaction-tracker/cash-check.jpg",
+        alt: "Cash check comparing what the cash drawer and GCash wallet should have with what was counted, showing Short ₱500 and Over ₱1,500",
+        width: 1220,
+        height: 2587,
+      },
+      {
+        src: "/projects/cleos-transaction-tracker/settings.jpg",
+        alt: "Settings with the GCash fee table, the small-load fee and threshold, load cost, and water pricing",
+        width: 1220,
+        height: 2587,
+      },
+    ],
+  },
+  {
+    slug: "deskcloud",
+    title: "Deskcloud",
+    summary:
+      "A wallpaper concept where clouds drift across a desktop and part around the icons, built as a live, draggable demo on a hand-written Canvas 2D engine.",
+    client: "Personal project",
+    role: "Design & front-end",
+    year: "2026",
+    stack: [
+      { group: "Core", items: ["Next.js 16", "React 19", "TypeScript"] },
+      { group: "Rendering", items: ["Canvas 2D (hand-written)", "requestAnimationFrame"] },
+      { group: "UI", items: ["Tailwind CSS 4", "next-themes", "lucide-react"] },
+      { group: "Waitlist", items: ["Upstash Redis", "Resend", "Zod", "React Hook Form"] },
+      { group: "Quality", items: ["Vitest", "ESLint", "GitHub Actions CI"] },
+    ],
+    problem:
+      "Desktop wallpapers ignore what's on your desktop: your files sit on top of whatever the picture happens to have there. I wanted to try the opposite. Could the scenery make room for your files instead, and move out of the way when you rearrange them?",
+    approach: [
+      {
+        title: "Engine",
+        body: "The icons become an occupancy grid. A two-pass chamfer distance transform turns that grid into a clearance field: how far every point is from the nearest icon, and which way leads away from it. Each cloud is a cluster of puffs, and every puff eases toward a target on a critically damped spring, sliding aside where the field says it's too close and shrinking only by what the push can't clear. I wrote it in plain Canvas 2D with no library, because the scene is a few dozen flat circles and I wanted to understand and own every frame.",
+      },
+      {
+        title: "Icons",
+        body: "The icons are real HTML buttons layered over the canvas, so they're focusable and have proper names. They snap to a Windows-style slot grid and can be dragged with a mouse, finger or pen. While you drag, the icon's box is fed to the engine once per frame, so the clouds reflow live instead of waiting for the drop.",
+      },
+      {
+        title: "Performance",
+        body: "The sky renders at 30 frames per second at most, with the pixel ratio capped at 2. The loop stops completely when the canvas is scrolled out of view or the tab is hidden, and I confirmed in the browser that no frames are drawn or requested then. The whole demo loads lazily, behind a placeholder of the same size, so the headline and text arrive first.",
+      },
+      {
+        title: "Accessibility",
+        body: "Arrow keys move the focused icon one slot and Enter opens it, with each move announced to screen readers. With reduced motion on, the sky stays still and settles instantly whenever an icon lands somewhere new. The canvas is purely decorative and hidden from assistive tech, and the headline is server-rendered.",
+      },
+      {
+        title: "Waitlist",
+        body: "The sign-up reuses the contact form's patterns: Zod validation, a honeypot, and per-IP plus global rate limits on a shared Redis client. Addresses go into a Redis set, so a repeat sign-up is harmless, and I'm only notified the first time.",
+      },
+    ],
+    outcome:
+      "The most useful lesson was splitting the work cleanly: the grid, field and clouds are plain TypeScript with unit tests, and only the renderer and the loop touch the browser. A real Windows version could reuse the whole engine and only replace the renderer. Building it also taught me a lot about spring physics, distance fields, and keeping an animation cheap enough to leave running all day.",
+    links: {
+      live: "/lab/deskcloud",
+      repos: [{ label: "Source code", href: "https://github.com/Jampord/Developer-Portfolio" }],
+    },
+    images: [
+      {
+        src: "/projects/deskcloud/day.png",
+        alt: "Deskcloud demo by day: a blue sky with flat white clouds and a sun, with desktop icons down the left edge",
+        width: 1725,
+        height: 1140,
+      },
+      {
+        src: "/projects/deskcloud/parting.gif",
+        alt: "Animation: the GitHub icon is dragged into the sky, the clouds part around it, and it's dragged back",
+        width: 690,
+        height: 456,
+      },
+      {
+        src: "/projects/deskcloud/night.png",
+        alt: "Deskcloud demo at night: a dark blue sky with stars, moonlit clouds and a moon, with the same desktop icons",
+        width: 1725,
+        height: 1140,
+      },
     ],
   },
   {
@@ -221,72 +465,6 @@ export const projects: Project[] = [
         alt: "JSON Toolbox generating TypeScript interfaces from sample JSON",
         width: 1600,
         height: 900,
-      },
-    ],
-  },
-  {
-    slug: "deskcloud",
-    title: "Deskcloud",
-    summary:
-      "A wallpaper concept where clouds drift across a desktop and part around the icons, built as a live, draggable demo on a hand-written Canvas 2D engine.",
-    client: "Personal project",
-    role: "Design & front-end",
-    year: "2026",
-    stack: [
-      { group: "Core", items: ["Next.js 16", "React 19", "TypeScript"] },
-      { group: "Rendering", items: ["Canvas 2D (hand-written)", "requestAnimationFrame"] },
-      { group: "UI", items: ["Tailwind CSS 4", "next-themes", "lucide-react"] },
-      { group: "Waitlist", items: ["Upstash Redis", "Resend", "Zod", "React Hook Form"] },
-      { group: "Quality", items: ["Vitest", "ESLint", "GitHub Actions CI"] },
-    ],
-    problem:
-      "Desktop wallpapers ignore what's on your desktop: your files sit on top of whatever the picture happens to have there. I wanted to try the opposite. Could the scenery make room for your files instead, and move out of the way when you rearrange them?",
-    approach: [
-      {
-        title: "Engine",
-        body: "The icons become an occupancy grid. A two-pass chamfer distance transform turns that grid into a clearance field: how far every point is from the nearest icon, and which way leads away from it. Each cloud is a cluster of puffs, and every puff eases toward a target on a critically damped spring, sliding aside where the field says it's too close and shrinking only by what the push can't clear. I wrote it in plain Canvas 2D with no library, because the scene is a few dozen flat circles and I wanted to understand and own every frame.",
-      },
-      {
-        title: "Icons",
-        body: "The icons are real HTML buttons layered over the canvas, so they're focusable and have proper names. They snap to a Windows-style slot grid and can be dragged with a mouse, finger or pen. While you drag, the icon's box is fed to the engine once per frame, so the clouds reflow live instead of waiting for the drop.",
-      },
-      {
-        title: "Performance",
-        body: "The sky renders at 30 frames per second at most, with the pixel ratio capped at 2. The loop stops completely when the canvas is scrolled out of view or the tab is hidden, and I confirmed in the browser that no frames are drawn or requested then. The whole demo loads lazily, behind a placeholder of the same size, so the headline and text arrive first.",
-      },
-      {
-        title: "Accessibility",
-        body: "Arrow keys move the focused icon one slot and Enter opens it, with each move announced to screen readers. With reduced motion on, the sky stays still and settles instantly whenever an icon lands somewhere new. The canvas is purely decorative and hidden from assistive tech, and the headline is server-rendered.",
-      },
-      {
-        title: "Waitlist",
-        body: "The sign-up reuses the contact form's patterns: Zod validation, a honeypot, and per-IP plus global rate limits on a shared Redis client. Addresses go into a Redis set, so a repeat sign-up is harmless, and I'm only notified the first time.",
-      },
-    ],
-    outcome:
-      "The most useful lesson was splitting the work cleanly: the grid, field and clouds are plain TypeScript with unit tests, and only the renderer and the loop touch the browser. A real Windows version could reuse the whole engine and only replace the renderer. Building it also taught me a lot about spring physics, distance fields, and keeping an animation cheap enough to leave running all day.",
-    links: {
-      live: "/lab/deskcloud",
-      repos: [{ label: "Source code", href: "https://github.com/Jampord/Developer-Portfolio" }],
-    },
-    images: [
-      {
-        src: "/projects/deskcloud/day.png",
-        alt: "Deskcloud demo by day: a blue sky with flat white clouds and a sun, with desktop icons down the left edge",
-        width: 1725,
-        height: 1140,
-      },
-      {
-        src: "/projects/deskcloud/parting.gif",
-        alt: "Animation: the GitHub icon is dragged into the sky, the clouds part around it, and it's dragged back",
-        width: 690,
-        height: 456,
-      },
-      {
-        src: "/projects/deskcloud/night.png",
-        alt: "Deskcloud demo at night: a dark blue sky with stars, moonlit clouds and a moon, with the same desktop icons",
-        width: 1725,
-        height: 1140,
       },
     ],
   },
