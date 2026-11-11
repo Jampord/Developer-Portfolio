@@ -250,25 +250,24 @@ export const projects: Project[] = [
     links: {
       repos: [{ label: "Source code", href: "https://github.com/Jampord/Cleos-Transaction-Tracker" }],
     },
-    // Placeholders until the real phone screenshots are in (draft PR)
     images: [
       {
-        src: "/projects/cleos-transaction-tracker/today.png",
-        alt: "Placeholder for the Today screen",
-        width: 824,
-        height: 1678,
+        src: "/projects/cleos-transaction-tracker/today.jpg",
+        alt: "Today screen: ₱510 owed in utang, 7 gallons of water left, and the day's cash-in, cash-out, load and water entries with their fees",
+        width: 1220,
+        height: 2587,
       },
       {
-        src: "/projects/cleos-transaction-tracker/new-entry.png",
-        alt: "Placeholder for the new entry form",
-        width: 824,
-        height: 1678,
+        src: "/projects/cleos-transaction-tracker/cash-check.jpg",
+        alt: "Cash check comparing what the cash drawer and GCash wallet should have with what was counted, showing Short ₱500 and Over ₱1,500",
+        width: 1220,
+        height: 2587,
       },
       {
-        src: "/projects/cleos-transaction-tracker/cash-check.png",
-        alt: "Placeholder for the cash check screen",
-        width: 824,
-        height: 1678,
+        src: "/projects/cleos-transaction-tracker/settings.jpg",
+        alt: "Settings with the GCash fee table, the small-load fee and threshold, load cost, and water pricing",
+        width: 1220,
+        height: 2587,
       },
     ],
   },
