@@ -1,3 +1,6 @@
+/** next/image quality for project screenshots; must be listed in images.qualities in next.config.ts */
+export const SCREENSHOT_QUALITY = 90;
+
 export type ProjectImage = {
   src: string;
   alt: string;
@@ -66,21 +69,27 @@ export const projects: Project[] = [
     images: [
       {
         src: "/projects/vladimir/dashboard.png",
-        alt: "Vladimir admin dashboard with summary cards for assets, movements, approvals and exceptions",
-        width: 1914,
-        height: 947,
+        alt: "Vladimir dashboard with summary cards for registered assets, open movements, pending approvals and control exceptions",
+        width: 2880,
+        height: 1800,
       },
       {
-        src: "/projects/vladimir/fixed-asset.png",
-        alt: "Vladimir fixed asset viewing interface (sensitive data redacted)",
-        width: 1917,
-        height: 947,
+        src: "/projects/vladimir/requisition.png",
+        alt: "Vladimir requisition timeline: a request at the For Tagging stage, with its approval and purchasing history",
+        width: 2880,
+        height: 1800,
       },
       {
-        src: "/projects/vladimir/dashboard1.png",
-        alt: "Vladimir user dashboard with permission-based modules for requisitions, movements, inventory and reports",
-        width: 1914,
-        height: 947,
+        src: "/projects/vladimir/transfer.png",
+        alt: "Vladimir transfer request moving five assets to a branch, each with its new custodian and receiver",
+        width: 2880,
+        height: 1800,
+      },
+      {
+        src: "/projects/vladimir/physical-inventory.png",
+        alt: "Vladimir physical inventory session: 128 of 162 assets scanned, with the scan field and recent scans",
+        width: 2880,
+        height: 1800,
       },
     ],
   },

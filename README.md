@@ -98,7 +98,7 @@ public/                 Images and the CV
 
 ## About the work shown
 
-Some projects here were built for an employer and are under NDA, so their screenshots have sensitive data removed and the client is described generically.
+Some projects here were built for an employer and are under NDA, so their screenshots were taken against a local mock with made-up data and the client is described generically.
 
 ## License
 

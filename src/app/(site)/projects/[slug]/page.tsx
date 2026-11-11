@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, ExternalLink } from "lucide-react";
-import { getProject, projects } from "@/data/projects";
+import { getProject, projects, SCREENSHOT_QUALITY } from "@/data/projects";
 import { site } from "@/lib/site";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -96,6 +96,7 @@ export default async function ProjectPage({ params }: Props) {
             width={cover.width}
             height={cover.height}
             sizes="(min-width: 1152px) 1100px, 100vw"
+            quality={SCREENSHOT_QUALITY}
             priority
             className="w-full"
           />
@@ -121,8 +122,8 @@ export default async function ProjectPage({ params }: Props) {
 
       {project.confidential && (
         <p className="mt-6 rounded-2xl border border-primary/30 bg-primary/5 p-4 font-mono text-sm text-muted">
-          {"//"} Confidential client work. The code and live product aren&apos;t public, and the screenshots have
-          sensitive data removed.
+          {"//"} Confidential client work. The code and live product aren&apos;t public, so the screenshots were
+          taken against a local mock with made-up data.
         </p>
       )}
 
@@ -178,6 +179,7 @@ export default async function ProjectPage({ params }: Props) {
                 width={img.width}
                 height={img.height}
                 sizes="(min-width: 1152px) 1100px, 100vw"
+                quality={SCREENSHOT_QUALITY}
                 className="w-full"
               />
             </div>
