@@ -7,7 +7,7 @@ import { ArrowUpRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { projects, SCREENSHOT_QUALITY, type Project } from "@/data/projects";
+import { featuredProjects, otherProjects, SCREENSHOT_QUALITY, type Project } from "@/data/projects";
 import { isPortrait, splitCover } from "@/lib/screenshots";
 import { PhoneScreens } from "./PhoneScreens";
 import { Reveal } from "./Reveal";
@@ -157,12 +157,32 @@ export function SelectedWork() {
       </Reveal>
 
       <ul className="stack-list mt-12 grid gap-8">
-        {projects.map((p, i) => (
+        {featuredProjects.map((p, i) => (
           <li key={p.slug} data-stack-item className="stack-card" style={{ "--stack-i": i } as React.CSSProperties}>
             <ProjectCard project={p} index={i} />
           </li>
         ))}
       </ul>
+
+      {otherProjects.length > 0 && (
+        <Reveal className="mt-16">
+          <p className="font-mono text-sm text-primary">{"//"} also built</p>
+          <ul className="mt-4 grid gap-x-8 gap-y-6 md:grid-cols-2">
+            {otherProjects.map((p) => (
+              <li key={p.slug}>
+                <Link
+                  href={`/projects/${p.slug}`}
+                  className="group/also inline-flex items-center gap-1 font-display text-xl font-bold hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+                >
+                  {p.title}
+                  <ArrowUpRight aria-hidden="true" className="size-4 transition-transform group-hover/also:rotate-45" />
+                </Link>
+                <p className="mt-1 text-sm text-muted">{p.summary}</p>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      )}
     </section>
   );
 }
