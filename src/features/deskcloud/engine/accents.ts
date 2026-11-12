@@ -4,7 +4,14 @@ import type { Field } from "./field";
 import type { Size, Vec2 } from "./types";
 
 /** The sun by day and the moon by night: one position, eased toward its target */
-export type Orb = { x: number; y: number; tx: number; ty: number };
+export type Orb = {
+  x: number;
+  y: number;
+  tx: number;
+  ty: number;
+  /** 0–1: the orb fades out while even its best spot is too cramped (e.g. on a busy phone screen) */
+  visibility: number;
+};
 
 export type Bird = {
   x: number;
@@ -36,25 +43,30 @@ const FLAP_RATE = 9; // radians per second
 const TAU = Math.PI * 2;
 
 /**
- * The roomiest spot in the top third of the canvas, kept a little in from the edges.
+ * The roomiest spot in the top third of the sky, kept a little in from the edges.
  * With nothing on the canvas it sits top-right.
+ *
+ * `top` is where the open sky starts, in CSS px from the canvas top: the canvas can run behind
+ * something that hides its top edge (a sticky header), and the orb should stay below it.
  */
-export function findOrbSpot(field: Field, size: Size, radius: number): Vec2 {
+export function findOrbSpot(field: Field, size: Size, radius: number, top = 0): Vec2 {
   const margin = radius * 1.6;
+  const skyTop = clamp(top, 0, size.height);
+  const minY = skyTop + margin;
+  const maxY = Math.max(minY, skyTop + (size.height - skyTop) / 3);
   const fallback = {
     x: clamp(size.width * 0.78, margin, size.width - margin),
-    y: clamp(size.height * 0.18, margin, Math.max(margin, size.height / 3)),
+    y: clamp(skyTop + (size.height - skyTop) * 0.18, minY, maxY),
   };
   if (field.grid.blockedCount === 0) return fallback;
 
   const { cols, rows, cellSize } = field.grid;
-  const maxY = Math.max(margin, size.height / 3);
   let best: Vec2 | null = null;
   let bestClearance = -1;
 
   for (let row = 0; row < rows; row++) {
     const y = (row + 0.5) * cellSize;
-    if (y < margin) continue;
+    if (y < minY) continue;
     if (y > maxY) break;
     for (let col = 0; col < cols; col++) {
       const x = (col + 0.5) * cellSize;
@@ -68,6 +80,11 @@ export function findOrbSpot(field: Field, size: Size, radius: number): Vec2 {
   }
 
   return best ?? fallback;
+}
+
+/** 1 when the orb has room at this spot (clear of every padded icon), 0 when it would touch one */
+export function orbVisibility(field: Field, x: number, y: number, radius: number): number {
+  return field.sample(x, y) >= radius ? 1 : 0;
 }
 
 /** Horizontal lanes in the upper half with the most room on average, at least LANE_GAP apart */
@@ -117,8 +134,8 @@ function updateStarVisibility(stars: Star[], field: Field) {
   for (const s of stars) s.visible = field.sample(s.x, s.y) > 0;
 }
 
-export function createAccents(size: Size, field: Field, theme: Theme, rng: () => number): Accents {
-  const spot = findOrbSpot(field, size, theme.orb.radius);
+export function createAccents(size: Size, field: Field, theme: Theme, rng: () => number, orbTop = 0): Accents {
+  const spot = findOrbSpot(field, size, theme.orb.radius, orbTop);
   const count = intBetween(rng, theme.birds.count);
   const lanes = chooseLanes(field, size, count, rng);
 
@@ -132,15 +149,15 @@ export function createAccents(size: Size, field: Field, theme: Theme, rng: () =>
   }));
 
   return {
-    orb: { x: spot.x, y: spot.y, tx: spot.x, ty: spot.y },
+    orb: { x: spot.x, y: spot.y, tx: spot.x, ty: spot.y, visibility: orbVisibility(field, spot.x, spot.y, theme.orb.radius) },
     birds,
     stars: createStars(size, field, theme, rng),
   };
 }
 
 /** After the icons move: new spots for the orb and bird lanes (eased in stepAccents), and which stars show */
-export function updateAccentTargets(accents: Accents, field: Field, size: Size, theme: Theme): void {
-  const spot = findOrbSpot(field, size, theme.orb.radius);
+export function updateAccentTargets(accents: Accents, field: Field, size: Size, theme: Theme, orbTop = 0): void {
+  const spot = findOrbSpot(field, size, theme.orb.radius, orbTop);
   accents.orb.tx = spot.x;
   accents.orb.ty = spot.y;
 
@@ -157,6 +174,8 @@ export function stepAccents(accents: Accents, dt: number, { field, size, theme }
   const { orb } = accents;
   orb.x += (orb.tx - orb.x) * ease;
   orb.y += (orb.ty - orb.y) * ease;
+  const shown = orbVisibility(field, orb.tx, orb.ty, theme.orb.radius);
+  orb.visibility += (shown - orb.visibility) * Math.min(1, dt * 4);
 
   const span = theme.birds.size * 2;
   for (const bird of accents.birds) {
@@ -173,9 +192,11 @@ export function stepAccents(accents: Accents, dt: number, { field, size, theme }
 }
 
 /** Jump straight to the targets (reduced motion, first paint). Stars keep their twinkle phase. */
-export function settleAccents(accents: Accents, field?: Field): void {
-  accents.orb.x = accents.orb.tx;
-  accents.orb.y = accents.orb.ty;
+export function settleAccents(accents: Accents, field?: Field, theme?: Theme): void {
+  const { orb } = accents;
+  orb.x = orb.tx;
+  orb.y = orb.ty;
+  if (field && theme) orb.visibility = orbVisibility(field, orb.tx, orb.ty, theme.orb.radius);
   for (const bird of accents.birds) {
     bird.y = bird.laneY;
     if (field) bird.visibility = clamp((field.sample(bird.x, bird.y) - 8) / 32, 0, 1);

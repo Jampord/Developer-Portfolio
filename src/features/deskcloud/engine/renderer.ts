@@ -84,19 +84,21 @@ function drawStars(ctx: CanvasRenderingContext2D, { stars }: Accents, palette: P
 /** The sun, or the moon with its craters fading in */
 function drawOrb(ctx: CanvasRenderingContext2D, { orb }: Accents, palette: Palette, night: number, theme: Theme) {
   const { radius, glowScale, glowAlpha } = theme.orb;
+  const shown = orb.visibility;
+  if (shown < 0.01) return;
 
-  ctx.fillStyle = css(palette.orbGlow, glowAlpha);
+  ctx.fillStyle = css(palette.orbGlow, glowAlpha * shown);
   ctx.beginPath();
   ctx.arc(orb.x, orb.y, radius * glowScale, 0, TAU);
   ctx.fill();
 
-  ctx.fillStyle = css(palette.orb);
+  ctx.fillStyle = css(palette.orb, shown);
   ctx.beginPath();
   ctx.arc(orb.x, orb.y, radius, 0, TAU);
   ctx.fill();
 
   if (night < 0.01) return;
-  ctx.fillStyle = css(palette.orbDetail, night);
+  ctx.fillStyle = css(palette.orbDetail, night * shown);
   ctx.beginPath();
   for (const [dx, dy, r] of CRATERS) {
     const x = orb.x + dx * radius;

@@ -125,7 +125,7 @@ function HeroIcon({ project }: { project: Project & { icon: NonNullable<Project[
       >
         <Glyph aria-hidden="true" className="size-6" strokeWidth={1.75} />
       </span>
-      <span className="line-clamp-2 rounded-md bg-sky-950/45 px-1.5 py-0.5 text-center text-xs font-medium leading-tight text-white">
+      <span className="line-clamp-2 rounded-md bg-sky-950/85 px-1.5 py-0.5 text-center text-xs font-medium leading-tight text-white">
         {project.icon.label}
       </span>
     </Link>

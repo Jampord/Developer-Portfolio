@@ -5,7 +5,10 @@ import { DeskcloudCanvas } from "@/features/deskcloud/components/DeskcloudCanvas
 import type { Rect } from "@/features/deskcloud/engine/types";
 import { HERO_SKY_CLASS, HERO_SKY_FADE_CLASS, SKY_OBSTACLE_ATTR, SKY_OBSTACLES_EVENT } from "@/lib/hero-sky";
 
-const sameRects = (a: readonly Rect[], b: readonly Rect[]) =>
+/** Space between the navbar and the top of the sun or moon, in px */
+const ORB_GAP = 16;
+
+const sameRects =(a: readonly Rect[], b: readonly Rect[]) =>
   a.length === b.length &&
   a.every((r, i) => r.x === b[i].x && r.y === b[i].y && r.width === b[i].width && r.height === b[i].height);
 
@@ -16,6 +19,7 @@ const sameRects = (a: readonly Rect[], b: readonly Rect[]) =>
 export function HeroSky() {
   const root = useRef<HTMLDivElement>(null);
   const [obstacles, setObstacles] = useState<readonly Rect[]>([]);
+  const [orbTop, setOrbTop] = useState(0);
 
   useEffect(() => {
     const el = root.current;
@@ -38,6 +42,8 @@ export function HeroSky() {
         };
       });
       setObstacles((prev) => (sameRects(prev, next) ? prev : next));
+      // The canvas runs up behind the navbar; the hero (and the open sky) starts where the section does
+      setOrbTop(Math.round(section.getBoundingClientRect().top - origin.top) + ORB_GAP);
     };
     // At most one measurement, and one obstacle update for the clouds, per frame
     const schedule = () => {
@@ -63,7 +69,7 @@ export function HeroSky() {
 
   return (
     <div ref={root} aria-hidden="true" className={HERO_SKY_CLASS}>
-      <DeskcloudCanvas obstacles={obstacles} className="block h-full w-full" />
+      <DeskcloudCanvas obstacles={obstacles} orbTop={orbTop} className="block h-full w-full" />
       <div className={HERO_SKY_FADE_CLASS} />
     </div>
   );
