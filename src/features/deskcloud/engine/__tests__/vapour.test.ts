@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { sky } from "../../themes/sky";
 import type { Cloud, Puff } from "../types";
-import { EDGE_HIGH, EDGE_LOW, shadeVapour, splatClouds, vapourGrid } from "../vapour";
+import { edgeBand, shadeVapour, splatClouds, vapourGrid } from "../vapour";
 
 const size = { width: 400, height: 300 };
+const [EDGE_LOW, EDGE_HIGH] = edgeBand(vapourGrid(size).cell);
 
 function puff(dx: number, dy: number, r: number, scale = 1): Puff {
   return { restDx: dx, restDy: dy, r, dx, dy, scale, vdx: 0, vdy: 0, vscale: 0, wx: 0, wy: 0, wvx: 0, wvy: 0 };

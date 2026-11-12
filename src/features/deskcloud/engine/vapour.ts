@@ -16,9 +16,20 @@ export const FUSE = 1.45;
  * shows at about 1.1× its radius (as large as the old soft sprites) while its outline stays lobed.
  */
 export const PUFF_DENSITY = 2;
-/** Density below this is clear sky; above the second it's fully opaque cloud */
-export const EDGE_LOW = 0.26;
-export const EDGE_HIGH = 0.34;
+/** Where a cloud's edge sits, in density */
+const EDGE_MID = 0.3;
+/**
+ * How wide the edge's fade is, in density per px of cell. An edge must span about one and a half
+ * grid cells: any narrower and scaling the grid up shows stair steps (worst on big screens, whose
+ * cells are larger); any wider and the clouds look blurry.
+ */
+const EDGE_PER_CELL = 0.085;
+
+/** Density below the first value is clear sky; above the second it's fully opaque cloud */
+export function edgeBand(cell: number): readonly [number, number] {
+  const half = (EDGE_PER_CELL * cell) / 2;
+  return [EDGE_MID - half, EDGE_MID + half];
+}
 /** Grid cells per layer to aim for, which sets the cell size (bigger screens get coarser cells) */
 const TARGET_CELLS = 160_000;
 const MIN_CELL = 3;
@@ -159,6 +170,7 @@ export function shadeVapour(
   const near = Math.max(1, Math.round(SHADE_NEAR / cell));
   const far = Math.max(1, Math.round(SHADE_FAR / cell));
   const alphaScale = opacity * 255;
+  const [edgeLow, edgeHigh] = edgeBand(cell);
 
   out.fill(0);
   if (bounds.minCol > bounds.maxCol) return;
@@ -168,8 +180,8 @@ export function shadeVapour(
     for (let col = bounds.minCol; col <= bounds.maxCol; col++) {
       const i = row * cols + col;
       const d = density[i];
-      if (d <= EDGE_LOW) continue;
-      const alpha = smoothstep(EDGE_LOW, EDGE_HIGH, d);
+      if (d <= edgeLow) continue;
+      const alpha = smoothstep(edgeLow, edgeHigh, d);
 
       // Outward surface direction from the density slope (density rises into the cloud)
       const gx = (col < cols - 1 ? density[i + 1] : d) - (col > 0 ? density[i - 1] : d);
