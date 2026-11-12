@@ -43,23 +43,38 @@ function makePuffs(rng: () => number, count: number, baseRadius: number): Puff[]
   });
 }
 
+/** Up to this canvas width (px) clouds are their theme size; wider canvases get bigger clouds */
+const CLOUD_SCALE_FROM = 1280;
+/** The largest that scaling makes them, as a multiple of their theme size */
+const MAX_CLOUD_SCALE = 1.8;
+
+/**
+ * How much bigger clouds are on this canvas: 1 up to 1280 px wide, then growing with the width
+ * (1.5× at 1920, 1.8× from about 2300), so a big screen gets big clouds instead of more small ones.
+ */
+export function cloudScale(size: Size): number {
+  return Math.min(MAX_CLOUD_SCALE, Math.max(1, size.width / CLOUD_SCALE_FROM));
+}
+
 /**
  * Seeded placement. The cloud count follows the canvas area, and each centre is
  * re-rolled until it has room (clearance ≥ 0.8 × the cloud's radius). If no try
- * fits, the roomiest one wins.
+ * fits, the roomiest one wins. On wide canvases clouds are scaled up (cloudScale), drift a little
+ * faster to match, and are a little fewer, so the sky isn't covered over.
  */
 export function createClouds(size: Size, field: Field, theme: Theme, rng: () => number): Cloud[] {
   const area = size.width * size.height;
   if (area <= 0) return [];
 
   const { clouds: cfg } = theme;
-  const count = Math.max(1, Math.round((theme.density * area) / 100_000));
+  const scale = cloudScale(size);
+  const count = Math.max(1, Math.round((theme.density * area) / 100_000 / Math.sqrt(scale)));
   const clouds: Cloud[] = [];
 
   for (let i = 0; i < count; i++) {
     const layer = rng() < cfg.backShare ? "back" : "front";
-    const puffs = makePuffs(rng, intBetween(rng, cfg.puffCount), between(rng, cfg[layer].radius));
-    const cloud: Cloud = { x: 0, y: 0, vx: between(rng, cfg[layer].speed), layer, puffs };
+    const puffs = makePuffs(rng, intBetween(rng, cfg.puffCount), between(rng, cfg[layer].radius) * scale);
+    const cloud: Cloud = { x: 0, y: 0, vx: between(rng, cfg[layer].speed) * scale, layer, puffs };
     const needed = 0.8 * cloudExtent(cloud);
 
     let best = { x: 0, y: 0, clearance: -1 };

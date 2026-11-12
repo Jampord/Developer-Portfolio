@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sky } from "../../themes/sky";
-import { cloudExtent, createClouds, settleClouds, stepClouds, type CloudContext } from "../clouds";
+import { cloudExtent, cloudScale, createClouds, settleClouds, stepClouds, type CloudContext } from "../clouds";
 import { buildField } from "../field";
 import { buildGrid } from "../grid";
 import { mulberry32 } from "../random";
@@ -165,5 +165,29 @@ describe("drift", () => {
     for (let i = 0; i < 3; i++) stepClouds(b, 0.1 / 3, ctx);
 
     expect(a).toEqual(b);
+  });
+});
+
+describe("cloud size on big screens", () => {
+  const field = (w: number, h: number) =>
+    buildField(buildGrid({ width: w, height: h }, [], { cellSize: sky.cellSize, padding: sky.iconPadding }));
+  const biggestPuff = (clouds: Cloud[]) => Math.max(...clouds.flatMap((c) => c.puffs.map((p) => p.r)));
+
+  it("keeps clouds their theme size up to 1280 px wide, then grows them, up to 1.8×", () => {
+    expect(cloudScale({ width: 390, height: 800 })).toBe(1);
+    expect(cloudScale({ width: 1280, height: 800 })).toBe(1);
+    expect(cloudScale({ width: 1920, height: 1080 })).toBeCloseTo(1.5);
+    expect(cloudScale({ width: 3840, height: 2160 })).toBe(1.8);
+  });
+
+  it("draws bigger, slightly fewer clouds on a wide canvas", () => {
+    const laptop = { width: 1280, height: 800 };
+    const wide = { width: 2560, height: 1600 };
+    const small = createClouds(laptop, field(laptop.width, laptop.height), sky, mulberry32(3));
+    const big = createClouds(wide, field(wide.width, wide.height), sky, mulberry32(3));
+    expect(biggestPuff(big)).toBeGreaterThan(biggestPuff(small) * 1.5);
+    // Four times the area, but not four times the clouds
+    expect(big.length).toBeLessThan(small.length * 4);
+    expect(big.length).toBeGreaterThan(small.length * 2);
   });
 });

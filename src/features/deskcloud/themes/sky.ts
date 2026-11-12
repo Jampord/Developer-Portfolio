@@ -36,7 +36,7 @@ export const sky: Theme = {
 
   cellSize: 12,
   iconPadding: 20,
-  density: 1.6,
+  density: 2.4,
   pushStrength: 1.15,
   minScale: 0.15,
   stiffness: 40,
