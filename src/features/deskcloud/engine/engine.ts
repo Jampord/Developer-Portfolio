@@ -67,7 +67,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
 
   function settle() {
     settleClouds(clouds, SETTLE_STEPS, context());
-    settleAccents(accents, field, theme);
+    settleAccents(accents, field);
   }
 
   function draw() {

@@ -299,7 +299,7 @@ export const projects: Project[] = [
     approach: [
       {
         title: "Engine",
-        body: "The icons become an occupancy grid. A two-pass chamfer distance transform turns that grid into a clearance field: how far every point is from the nearest icon, and which way leads away from it. Each cloud is a cluster of puffs, and every puff eases toward a target on a critically damped spring, sliding aside where the field says it's too close and shrinking only by what the push can't clear. I wrote it in plain Canvas 2D with no library, because the scene is a few dozen flat circles and I wanted to understand and own every frame.",
+        body: "The icons become an occupancy grid. A two-pass chamfer distance transform turns that grid into a clearance field: how far every point is from the nearest icon, and which way leads away from it. Each cloud is a cluster of puffs, and every puff eases toward a target on a critically damped spring, sliding aside where the field says it's too close and shrinking only by what the push can't clear. I wrote it in plain Canvas 2D with no library, because I wanted to understand and own every frame. Each puff is stamped from a small soft, shaded image that's drawn once in code and only redrawn when the colours change, so the clouds look soft without costing more per frame.",
       },
       {
         title: "Icons",
