@@ -21,8 +21,17 @@ export const site = {
     live: (place: string, time: string, weather: string | null) =>
       `Live sky over ${place} · ${time}${weather ? ` · ${weather}` : ""}`,
     switchLabel: "Day and night follow",
+    skyLabel: "Sky",
+    sky: { on: "On", off: "Off" },
+    off: "Live sky off",
+    turnOn: "Turn it on",
     modes: { clock: "Pampanga clock", theme: "My theme" },
-    palette: { toClock: "Follow the Pampanga clock for day and night", toTheme: "Stop following the Pampanga clock" },
+    palette: {
+      toClock: "Follow the Pampanga clock for day and night",
+      toTheme: "Stop following the Pampanga clock",
+      skyOff: "Turn the live sky off",
+      skyOn: "Turn the live sky on",
+    },
   },
   cvPath: "/john-ford-actub-cv.pdf",
   nav: [

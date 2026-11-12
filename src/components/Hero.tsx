@@ -4,7 +4,7 @@ import { ArrowDown, Download } from "lucide-react";
 import { SKY_OBSTACLE_ATTR, SKY_ORB_BLOCKER_ATTR } from "@/lib/hero-sky";
 import { site } from "@/lib/site";
 import { HeroIcons } from "./HeroIcons";
-import { LazyHeroSky } from "./LazyHeroSky";
+import { HeroSkyLayer } from "./HeroSkyLayer";
 import { SkyCaption } from "./SkyCaption";
 
 const nameLines = ["John Ford", "Actub"];
@@ -28,7 +28,7 @@ export function Hero() {
   return (
     // Full width, so the sky runs edge to edge; the content keeps the page's column
     <section className="relative isolate">
-      <LazyHeroSky />
+      <HeroSkyLayer />
 
       <div className="mx-auto flex min-h-[88svh] w-[calc(100%-2rem)] max-w-6xl flex-col justify-center gap-10 pb-28 pt-12 md:pt-20">
         <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-6">
