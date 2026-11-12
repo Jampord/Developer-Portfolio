@@ -50,9 +50,7 @@ export type Theme = {
   density: number;
   /** How far puffs are pushed out of the way (1 = just clear) */
   pushStrength: number;
-  /** Furthest a puff slides up or down to flow around an icon, in px; past that it parts and shrinks instead */
-  flowReach: number;
-  /** Smallest a squeezed puff shrinks to when it can't flow around, as a fraction of its size (puffs resting inside an icon's padding vanish) */
+  /** Smallest a squeezed puff shrinks to, as a fraction of its size (puffs resting inside an icon's padding vanish) */
   minScale: number;
   /** Spring stiffness for reflow, in 1/s² (higher = snappier) */
   stiffness: number;
