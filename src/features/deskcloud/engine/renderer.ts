@@ -2,7 +2,7 @@ import type { Palette, Rgb, Theme } from "../themes/types";
 import type { Accents } from "./accents";
 import { SKY_MID } from "./skyStops";
 import type { Cloud, Size } from "./types";
-import { shadeVapour, splatClouds, vapourGrid, type VapourGrid } from "./vapour";
+import { shadeVapour, splatClouds, traceVapour, vapourGrid, type OutlineSink, type VapourGrid } from "./vapour";
 
 export type Scene = {
   size: Size;
@@ -249,9 +249,33 @@ function drawClouds(
   shadeVapour(grid, image.data, palette, orb, theme.clouds[layer].opacity);
   small.putImageData(image, 0, 0);
 
+  // The colour is drawn through the traced outline, which the browser anti-aliases at full
+  // resolution: smooth edges on any screen, however coarse the grid
+  const outline = new Path2D();
+  traceVapour(grid, outlineInto(outline));
+  ctx.save();
+  ctx.clip(outline);
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.drawImage(canvas, 0, 0, grid.cols * grid.cell, grid.rows * grid.cell);
+  ctx.restore();
+}
+
+function outlineInto(path: Path2D): OutlineSink {
+  return {
+    // Outlines and holes come wound opposite ways, so the default nonzero fill leaves holes open.
+    // Every other point is kept and joined with curves through the midpoints: half the path calls
+    // (the slow part), and a rounder outline than straight segments.
+    loop(points, count) {
+      const step = count >= 12 ? 2 : 1;
+      const n = Math.floor(count / step);
+      const x = (k: number) => points[((k % n) * step) * 2];
+      const y = (k: number) => points[((k % n) * step) * 2 + 1];
+      path.moveTo((x(n - 1) + x(0)) / 2, (y(n - 1) + y(0)) / 2);
+      for (let k = 0; k < n; k++) path.quadraticCurveTo(x(k), y(k), (x(k) + x(k + 1)) / 2, (y(k) + y(k + 1)) / 2);
+      path.closePath();
+    },
+  };
 }
 
 /** Rain streaks per 100,000 px² of canvas at full strength, and how they fall (px/s) */
