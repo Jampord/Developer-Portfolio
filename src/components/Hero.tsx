@@ -50,7 +50,8 @@ export function Hero() {
           </div>
 
           {/* Above the rest of the hero, so a dragged icon passes over the headline and the card */}
-          <div data-hero-fade className="relative z-10 w-full sm:w-auto">
+          {/* They live on the sky, so they're hidden with it */}
+          <div data-hero-fade data-hero-sky-icons className="relative z-10 w-full sm:w-auto">
             <HeroIcons />
           </div>
         </div>

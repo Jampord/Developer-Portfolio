@@ -30,8 +30,8 @@ export const site = {
     switchLabel: "Day and night follow",
     skyLabel: "Sky",
     sky: { on: "On", off: "Off" },
-    off: "Live sky off",
-    turnOn: "Turn it on",
+    turnOn: "Turn on the sky",
+    turnOnHint: "Show the live sky over San Fernando, Pampanga",
     modes: { clock: "Pampanga clock", theme: "My theme" },
     palette: {
       toClock: "Follow the Pampanga clock for day and night",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { featuredProjects, type Project } from "@/data/projects";
 import { SKY_OBSTACLE_ATTR, SKY_OBSTACLES_EVENT } from "@/lib/hero-sky";
@@ -152,8 +152,8 @@ export function HeroIcons({ className = "" }: { className?: string }) {
 
   return (
     <ul aria-label="Projects" className={`grid grid-cols-4 gap-1 sm:flex sm:gap-2 ${className}`}>
-      {featuredProjects.filter(hasIcon).map((project) => (
-        <li key={`${project.slug}-${layout}`}>
+      {featuredProjects.filter(hasIcon).map((project, i) => (
+        <li key={`${project.slug}-${layout}`} style={{ "--icon-i": i } as CSSProperties}>
           <HeroIcon project={project} />
         </li>
       ))}
