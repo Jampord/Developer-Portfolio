@@ -6,6 +6,8 @@ import { placeTime } from "@/lib/sky-clock";
 import { setSkyMode, useSkyMode, type SkyMode } from "@/lib/sky-mode";
 import { site } from "@/lib/site";
 import { useNow } from "@/lib/use-now";
+import { useSkyWeather } from "@/lib/use-sky-weather";
+import { weatherText } from "@/lib/sky-weather";
 
 const surface = "border border-foreground/10 bg-card/90 backdrop-blur-md";
 const MODES: SkyMode[] = ["clock", "theme"];
@@ -14,12 +16,13 @@ const MODES: SkyMode[] = ["clock", "theme"];
 export function SkyCaption() {
   const now = useNow(30_000);
   const mode = useSkyMode();
+  const weather = useSkyWeather();
   const { sky } = site;
 
   return (
     <div data-hero-fade className="flex flex-col items-start gap-2">
       <div className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl px-3 py-1.5 font-mono text-xs ${surface}`}>
-        <p className="text-foreground">{sky.live(sky.place, now === null ? "…" : placeTime(now))}</p>
+        <p className="text-foreground">{sky.live(sky.place, now === null ? "…" : placeTime(now), weather ? weatherText(weather) : null)}</p>
         <div role="group" aria-label={sky.switchLabel} className="flex items-center gap-1">
           <span className="text-muted">{sky.switchLabel}:</span>
           {MODES.map((m) => (

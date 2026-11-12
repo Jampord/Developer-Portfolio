@@ -14,6 +14,12 @@ export type Scene = {
   theme: Theme;
   /** The moon's phase, 0–1 (0 new, 0.5 full); null or missing draws a full moon */
   moonPhase?: number | null;
+  /** 0–1: how many rain streaks fall */
+  rain?: number;
+  /** 0–1: how much cloud hides the sun or moon */
+  sunHidden?: number;
+  /** Seconds since the scene started, for the falling rain */
+  time?: number;
 };
 
 const TAU = Math.PI * 2;
@@ -57,9 +63,10 @@ export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: S
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, width, height);
 
-  drawHalo(ctx, accents, palette, 1 - night, theme);
+  const sunShown = 1 - (scene.sunHidden ?? 0);
+  drawHalo(ctx, accents, palette, (1 - night) * sunShown, theme);
   drawStars(ctx, accents, palette, night);
-  drawOrb(ctx, accents, palette, night, theme, scene.moonPhase ?? null);
+  drawOrb(ctx, accents, palette, night, theme, scene.moonPhase ?? null, sunShown);
 
   const { backFade } = theme.clouds;
   const backPalette = {
@@ -70,6 +77,7 @@ export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: S
   };
   drawClouds(ctx, clouds, "back", backPalette, accents, theme, width);
   drawClouds(ctx, clouds, "front", palette, accents, theme, width);
+  drawRain(ctx, size, palette, scene.rain ?? 0, scene.time ?? 0);
 
   drawBirds(ctx, accents, palette, 1 - night, theme);
 }
@@ -106,8 +114,10 @@ function drawOrb(
   night: number,
   theme: Theme,
   phase: number | null,
+  /** 1 in a clear sky, lower when cloud hides it */
+  clearness = 1,
 ) {
-  const shown = orb.visibility;
+  const shown = orb.visibility * clearness;
   if (shown < 0.01) return;
   const { x, y, radius } = orb;
   const { glowScale, glowAlpha } = theme.orb;
@@ -243,6 +253,10 @@ function sprite(layer: Cloud["layer"], light: Light, palette: Palette, softness:
   return slot.canvas;
 }
 
+/** Below this share of its size a squeezed puff is hidden; above the second it's fully drawn */
+const SQUEEZE_HIDE = 0.3;
+const SQUEEZE_FULL = 0.55;
+
 /** Puffs drawn lowest first, so the rounded tops overlap the shaded bases below them */
 const drawOrder = new WeakMap<Cloud, number[]>();
 
@@ -280,12 +294,48 @@ function drawClouds(
     const image = sprite(layer, lightFor(cloud, accents, width), palette, softness);
     for (const i of puffOrder(cloud)) {
       const p = cloud.puffs[i];
+      // A puff squeezed to a fraction of its size reads as a stray dot, so it fades out instead
+      const fade = Math.min(1, Math.max(0, (p.scale - SQUEEZE_HIDE) / (SQUEEZE_FULL - SQUEEZE_HIDE)));
       const r = p.r * p.scale * spread;
-      if (r < 0.5) continue;
+      if (fade <= 0 || r < 0.5) continue;
+      ctx.globalAlpha = opacity * fade;
       ctx.drawImage(image, cloud.x + p.dx - r, cloud.y + p.dy - r, r * 2, r * 2);
     }
   }
   ctx.globalAlpha = 1;
+}
+
+/** Rain streaks per 100,000 px² of canvas at full strength, and how they fall (px/s) */
+const RAIN_DENSITY = 20;
+const RAIN_FALL = 520;
+const RAIN_DRIFT = 90;
+const RAIN_LENGTH = 18;
+
+/** A repeatable 0–1 value for streak i, so the rain needs no stored state */
+const hash = (i: number, salt: number) => {
+  const v = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+  return v - Math.floor(v);
+};
+
+/** Thin slanted streaks, falling and wrapping; their positions are a pure function of time */
+function drawRain(ctx: CanvasRenderingContext2D, { width, height }: Size, palette: Palette, amount: number, time: number) {
+  if (amount < 0.01) return;
+  const count = Math.round((RAIN_DENSITY * amount * width * height) / 100_000);
+  const spanX = width + 60;
+  const spanY = height + 40;
+  const dx = (RAIN_DRIFT / RAIN_FALL) * RAIN_LENGTH;
+  ctx.strokeStyle = css(palette.cloudLight, 0.55);
+  ctx.lineWidth = 1.2;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  for (let i = 0; i < count; i++) {
+    const speed = 0.8 + 0.4 * hash(i, 3);
+    const x = (((hash(i, 1) * spanX - time * RAIN_DRIFT * speed) % spanX) + spanX) % spanX - 30;
+    const y = ((hash(i, 2) * spanY + time * RAIN_FALL * speed) % spanY) - 20;
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - dx, y + RAIN_LENGTH);
+  }
+  ctx.stroke();
 }
 
 /** Small "V" birds; the wing tips rise and fall with the flap phase. Day only. */

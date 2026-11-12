@@ -4,7 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DeskcloudCanvas } from "@/features/deskcloud/components/DeskcloudCanvas";
 import { lerpPalette } from "@/features/deskcloud/engine/renderer";
 import { sky } from "@/features/deskcloud/themes/sky";
-import { dawn, golden } from "@/features/deskcloud/themes/skyTints";
+import { dawn, golden, overcastDay, overcastNight } from "@/features/deskcloud/themes/skyTints";
+import { withCloudCover } from "@/features/deskcloud/themes/weather";
+import { FALLBACK_EFFECT, WEATHER_EFFECTS } from "@/lib/sky-weather";
+import { useSkyWeather } from "@/lib/use-sky-weather";
 import { moonPhase, skyTime } from "@/lib/sky-clock";
 import { useNow } from "@/lib/use-now";
 import type { Rect } from "@/features/deskcloud/engine/types";
@@ -26,13 +29,21 @@ export function HeroSky() {
   const [obstacles, setObstacles] = useState<readonly Rect[]>([]);
   const [orbTop, setOrbTop] = useState(0);
 
-  // The real sky over Pampanga: dawn and golden-hour tints by day, the moon's phase by night
+  // The real sky over Pampanga: dawn and golden-hour tints by day, the moon's phase by night,
+  // and the current weather (partly cloudy until it arrives, or if it can't be fetched)
   const now = useNow(60_000);
+  const weather = useSkyWeather();
+  const effect = weather ? WEATHER_EFFECTS[weather.kind] : FALLBACK_EFFECT;
+  const theme = useMemo(() => withCloudCover(sky, effect), [effect]);
   const palettes = useMemo(() => {
     if (now === null) return null;
     const { dawn: d, golden: g } = skyTime(now);
-    return { day: lerpPalette(lerpPalette(sky.palettes.day, dawn, d), golden, g), night: sky.palettes.night };
-  }, [now]);
+    const day = lerpPalette(lerpPalette(sky.palettes.day, dawn, d), golden, g);
+    return {
+      day: lerpPalette(day, overcastDay, effect.grey),
+      night: lerpPalette(sky.palettes.night, overcastNight, effect.grey),
+    };
+  }, [now, effect]);
   const phase = now === null ? null : moonPhase(now);
 
   useEffect(() => {
@@ -88,6 +99,8 @@ export function HeroSky() {
         orbTop={orbTop}
         palettes={palettes}
         moonPhase={phase}
+        theme={theme}
+        weather={effect}
         className="block h-full w-full"
       />
       <div className={HERO_SKY_FADE_CLASS} />

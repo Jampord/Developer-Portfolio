@@ -17,8 +17,9 @@ export const site = {
     caption: "Drawn by Deskcloud, a canvas engine I wrote by hand. 30fps, no libraries.",
     href: "/lab/deskcloud",
     place: "San Fernando, Pampanga",
-    /** e.g. "Live sky over San Fernando, Pampanga · 9:14 PM" */
-    live: (place: string, time: string) => `Live sky over ${place} · ${time}`,
+    /** e.g. "Live sky over San Fernando, Pampanga · 9:14 PM · light rain, 29°C" */
+    live: (place: string, time: string, weather: string | null) =>
+      `Live sky over ${place} · ${time}${weather ? ` · ${weather}` : ""}`,
     switchLabel: "Day and night follow",
     modes: { clock: "Pampanga clock", theme: "My theme" },
     palette: { toClock: "Follow the Pampanga clock for day and night", toTheme: "Stop following the Pampanga clock" },

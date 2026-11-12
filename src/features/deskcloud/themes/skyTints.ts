@@ -31,3 +31,26 @@ export const golden: Palette = {
   cloudLight: [255, 226, 180],
   cloudShadow: [196, 160, 170],
 };
+
+/** Under heavy cloud by day: a flat grey-blue sky and grey clouds */
+export const overcastDay: Palette = {
+  ...sky.palettes.day,
+  skyTop: [120, 144, 170],
+  skyBottom: [176, 192, 208],
+  skyHaze: [206, 214, 222],
+  orbGlow: [226, 232, 238],
+  cloud: [226, 230, 236],
+  cloudLight: [240, 242, 246],
+  cloudShadow: [160, 170, 186],
+};
+
+/** Under heavy cloud at night: fewer stars show through, and the clouds are dark slate */
+export const overcastNight: Palette = {
+  ...sky.palettes.night,
+  skyTop: [14, 18, 30],
+  skyBottom: [34, 40, 56],
+  skyHaze: [52, 58, 74],
+  cloud: [70, 78, 96],
+  cloudLight: [92, 100, 118],
+  cloudShadow: [44, 50, 66],
+};
