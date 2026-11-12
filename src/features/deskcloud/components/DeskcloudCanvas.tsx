@@ -2,9 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
-import { createEngine, type Engine } from "../engine/engine";
+import { createEngine, type Engine, type Weather } from "../engine/engine";
 import type { Mode, Rect } from "../engine/types";
-import type { Palette } from "../themes/types";
+import type { Palette, Theme } from "../themes/types";
 import { sky } from "../themes";
 import { skyBackgroundClass, skyBackgroundStyle } from "./demoFrame";
 
@@ -22,11 +22,25 @@ type Props = {
   palettes?: { day: Palette; night: Palette } | null;
   /** The moon's phase, 0–1; leave out for a full moon */
   moonPhase?: number | null;
+  /** A variant of the Sky theme (e.g. with more cloud for the weather) */
+  theme?: Theme;
+  /** Rain, lightning, fog, wind and how much cloud hides the sun or moon */
+  weather?: Weather;
   className?: string;
 };
 
+const CLEAR: Weather = { rain: 0, sunHidden: 0, lightning: 0, fog: 0, wind: 1 };
+
 /** Owns the <canvas> and the engine instance; purely decorative, all interaction lives on the HTML above it */
-export function DeskcloudCanvas({ obstacles, orbTop = 0, palettes = null, moonPhase = null, className = "" }: Props) {
+export function DeskcloudCanvas({
+  obstacles,
+  orbTop = 0,
+  palettes = null,
+  moonPhase = null,
+  theme = sky,
+  weather = CLEAR,
+  className = "",
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
   const { resolvedTheme } = useTheme();
@@ -85,6 +99,15 @@ export function DeskcloudCanvas({ obstacles, orbTop = 0, palettes = null, moonPh
   useEffect(() => {
     engineRef.current?.setMoonPhase(moonPhase);
   }, [moonPhase]);
+
+  useEffect(() => {
+    engineRef.current?.setTheme(theme);
+  }, [theme]);
+
+  const { rain, sunHidden, lightning, fog, wind } = weather;
+  useEffect(() => {
+    engineRef.current?.setWeather({ rain, sunHidden, lightning, fog, wind });
+  }, [rain, sunHidden, lightning, fog, wind]);
 
   // Follow the site's light/dark toggle (and the command palette's theme action) with a cross-fade
   useEffect(() => {

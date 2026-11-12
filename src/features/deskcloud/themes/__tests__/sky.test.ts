@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { lerpPalette } from "../../engine/renderer";
 import { sky } from "../sky";
-import { dawn, golden } from "../skyTints";
+import { dawn, golden, overcastDay, overcastNight, stormDay, stormNight } from "../skyTints";
+import { withCloudCover } from "../weather";
 
 const { day, night } = sky.palettes;
 
@@ -11,11 +12,11 @@ describe("Sky palettes", () => {
   });
 
   it("give the dawn and golden-hour tints the same colours too", () => {
-    for (const tint of [dawn, golden]) expect(Object.keys(tint).sort()).toEqual(Object.keys(day).sort());
+    for (const tint of [dawn, golden, overcastDay, overcastNight, stormDay, stormNight]) expect(Object.keys(tint).sort()).toEqual(Object.keys(day).sort());
   });
 
   it("use valid RGB channels", () => {
-    for (const palette of [day, night, dawn, golden]) {
+    for (const palette of [day, night, dawn, golden, overcastDay, overcastNight, stormDay, stormNight]) {
       for (const rgb of Object.values(palette)) {
         expect(rgb).toHaveLength(3);
         for (const channel of rgb) {
@@ -39,5 +40,26 @@ describe("lerpPalette", () => {
     for (const key of Object.keys(day) as (keyof typeof day)[]) {
       mid[key].forEach((v, i) => expect(v).toBeCloseTo((day[key][i] + night[key][i]) / 2));
     }
+  });
+});
+
+describe("withCloudCover", () => {
+  it("leaves the theme alone for an ordinary sky", () => {
+    expect(withCloudCover(sky, { cloudiness: 1, puffScale: 1 })).toBe(sky);
+  });
+
+  it("scales the cloud density and every puff radius", () => {
+    const heavy = withCloudCover(sky, { cloudiness: 2, puffScale: 1.5 });
+    expect(heavy.density).toBeCloseTo(sky.density * 2);
+    expect(heavy.clouds.front.radius[1]).toBeCloseTo(sky.clouds.front.radius[1] * 1.5);
+    expect(heavy.clouds.back.radius[0]).toBeCloseTo(sky.clouds.back.radius[0] * 1.5);
+    expect(heavy.palettes).toBe(sky.palettes);
+  });
+
+  it("speeds the drift up with the wind", () => {
+    const windy = withCloudCover(sky, { cloudiness: 1, puffScale: 1, wind: 3 });
+    expect(windy).not.toBe(sky);
+    expect(windy.clouds.front.speed[1]).toBeCloseTo(sky.clouds.front.speed[1] * 3);
+    expect(windy.density).toBe(sky.density);
   });
 });

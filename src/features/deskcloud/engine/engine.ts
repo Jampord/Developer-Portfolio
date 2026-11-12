@@ -5,7 +5,7 @@ import { buildGrid } from "./grid";
 import { createLoop } from "./loop";
 import { mulberry32 } from "./random";
 import { lerpPalette, renderScene } from "./renderer";
-import type { Palette } from "../themes/types";
+import type { Palette, Theme } from "../themes/types";
 import type { Cloud, EngineOptions, Mode, Rect, Size } from "./types";
 
 export type Engine = {
@@ -20,6 +20,10 @@ export type Engine = {
   setPalettes(palettes: { day: Palette; night: Palette } | null): void;
   /** The moon's phase, 0–1 (0 new, 0.5 full); null draws a full moon */
   setMoonPhase(phase: number | null): void;
+  /** Swap the theme (e.g. more, bigger clouds for overcast weather); the clouds are laid out again */
+  setTheme(theme: Theme): void;
+  /** Rain streaks (0–1, none with reduced motion) and how much cloud hides the sun or moon (0–1) */
+  setWeather(weather: Weather): void;
   /** On: stop the loop and draw a settled scene once per change */
   setReducedMotion(on: boolean): void;
   pause(): void;
@@ -27,10 +31,16 @@ export type Engine = {
   destroy(): void;
 };
 
+/** Rain, lightning and fog (0–1), how much cloud hides the sun (0–1), and a wind multiplier for the rain's slant */
+export type Weather = { rain: number; sunHidden: number; lightning: number; fog: number; wind: number };
+
+const CALM: Weather = { rain: 0, sunHidden: 0, lightning: 0, fog: 0, wind: 1 };
+
 /** Enough fixed steps for the springs to come to rest */
 const SETTLE_STEPS = 90;
 
-export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode = "day" }: EngineOptions): Engine {
+export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, seed = 1, mode = "day" }: EngineOptions): Engine {
+  let theme = initialTheme;
   const ctx = canvas.getContext("2d");
 
   let size: Size = { width: 0, height: 0 };
@@ -44,8 +54,11 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
   // Start in the right mode so the first paint never flashes the other sky
   let modeTarget = mode === "night" ? 1 : 0;
   let modeT = modeTarget;
-  let palettes = theme.palettes;
+  let paletteOverride: { day: Palette; night: Palette } | null = null;
   let moonPhase: number | null = null;
+  let weather = CALM;
+  /** Seconds the loop has run, for the falling rain */
+  let elapsed = 0;
   let reducedMotion = false;
   let paused = false;
   let destroyed = false;
@@ -79,12 +92,21 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
 
   function draw() {
     if (!ctx || destroyed || size.width <= 0 || size.height <= 0) return;
-    const { day, night } = palettes;
+    const { day, night } = paletteOverride ?? theme.palettes;
     const t = modeT * modeT * (3 - 2 * modeT); // smoothstep
-    renderScene(ctx, dpr, { size, palette: lerpPalette(day, night, t), night: t, clouds, accents, theme, moonPhase });
+    renderScene(ctx, dpr, { size, palette: lerpPalette(day, night, t), night: t, clouds, accents, theme, moonPhase,
+      // Nothing falls or flashes with reduced motion
+      rain: reducedMotion ? 0 : weather.rain,
+      lightning: reducedMotion ? 0 : weather.lightning,
+      sunHidden: weather.sunHidden,
+      fog: weather.fog,
+      wind: weather.wind,
+      time: elapsed,
+    });
   }
 
   function frame(dt: number) {
+    elapsed += dt;
     const sim = context();
     stepClouds(clouds, dt, sim);
     stepAccents(accents, dt, sim);
@@ -143,13 +165,27 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
 
     setPalettes(next) {
       if (destroyed) return;
-      palettes = next ?? theme.palettes;
+      paletteOverride = next;
       if (!loop.running) draw();
     },
 
     setMoonPhase(phase) {
       if (destroyed) return;
       moonPhase = phase;
+      if (!loop.running) draw();
+    },
+
+    setTheme(next) {
+      if (destroyed || next === theme) return;
+      theme = next;
+      rebuildField();
+      layout();
+      if (!loop.running) draw();
+    },
+
+    setWeather(next) {
+      if (destroyed) return;
+      weather = { ...next };
       if (!loop.running) draw();
     },
 
