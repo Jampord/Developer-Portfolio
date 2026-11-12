@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { sky } from "../../themes/sky";
-import { createAccents, findOrbSpot, settleAccents, stepAccents, updateAccentTargets } from "../accents";
+import { createAccents, findOrbSpot, orbRadius, settleAccents, stepAccents, updateAccentTargets } from "../accents";
 import { buildField } from "../field";
 import { buildGrid } from "../grid";
 import { mulberry32 } from "../random";
 import type { Rect } from "../types";
 
 const size = { width: 800, height: 600 };
-const radius = sky.orb.radius;
+const radius = orbRadius(size, sky);
 
 function fieldFor(obstacles: Rect[]) {
   return buildField(buildGrid(size, obstacles, { cellSize: sky.cellSize, padding: sky.iconPadding }));
@@ -44,6 +44,15 @@ describe("findOrbSpot (sun by day, moon by night)", () => {
   });
 });
 
+describe("orbRadius", () => {
+  it("grows with the sky, within the theme's limits", () => {
+    const { size: share, minRadius, maxRadius } = sky.orb;
+    expect(orbRadius({ width: 1200, height: 900 }, sky)).toBeCloseTo(900 * share);
+    expect(orbRadius({ width: 375, height: 800 }, sky)).toBe(minRadius);
+    expect(orbRadius({ width: 4000, height: 3000 }, sky)).toBe(maxRadius);
+  });
+});
+
 describe("accents", () => {
   it("eases the orb to its new spot when icons move", () => {
     const accents = createAccents(size, fieldFor([]), sky, mulberry32(1));
@@ -75,7 +84,7 @@ describe("accents", () => {
 
     const open = fieldFor([]);
     updateAccentTargets(accents, open, size, sky);
-    settleAccents(accents, open, sky);
+    settleAccents(accents, open);
     expect(accents.orb.visibility).toBe(1);
   });
 

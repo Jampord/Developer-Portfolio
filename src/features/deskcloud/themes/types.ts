@@ -9,12 +9,17 @@ export type Range = readonly [min: number, max: number];
 export type Palette = {
   skyTop: Rgb;
   skyBottom: Rgb;
+  /** Pale haze at the very bottom of the sky, toward the horizon */
+  skyHaze: Rgb;
   /** The sun by day, the moon by night */
   orb: Rgb;
   orbGlow: Rgb;
   /** Craters on the moon (only drawn at night) */
   orbDetail: Rgb;
   cloud: Rgb;
+  /** The side of a cloud facing the sun or moon */
+  cloudLight: Rgb;
+  /** Undersides, away from the light */
   cloudShadow: Rgb;
   /** Only drawn by day */
   bird: Rgb;
@@ -27,6 +32,9 @@ type CloudLayer = {
   radius: Range;
   /** Drift speed in px/s */
   speed: Range;
+  /** Share of each puff's radius that fades out at its edge (0 = hard edge) */
+  softness: number;
+  opacity: number;
 };
 
 export type Theme = {
@@ -57,20 +65,24 @@ export type Theme = {
     band: Range;
     /** How much back clouds fade toward the sky colour (0–1) */
     backFade: number;
-    /** How far the shadow pass sits below each puff, as a fraction of its radius */
-    shadowOffset: number;
     back: CloudLayer;
     front: CloudLayer;
   };
 
   /** Sun by day, moon by night: same spot, same size */
   orb: {
-    radius: number;
+    /** Radius as a fraction of the canvas's shorter side, kept within min and max (px) */
+    size: number;
+    minRadius: number;
+    maxRadius: number;
     /** How quickly it eases to a new spot, in 1/s */
     ease: number;
-    /** Glow size as a multiple of the radius, and its opacity */
+    /** Soft glow around the disc: its size as a multiple of the radius, and its opacity */
     glowScale: number;
     glowAlpha: number;
+    /** A wide, faint brightening of the sky around the sun (day only), same units */
+    haloScale: number;
+    haloAlpha: number;
   };
 
   birds: {

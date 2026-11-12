@@ -83,7 +83,7 @@ export const en = {
       {
         question: "Will it slow my computer down?",
         answer:
-          "It's built to stay light: simple flat shapes, a 30 frames per second limit, and a full stop whenever it's hidden or scrolled out of view.",
+          "It's built to stay light: soft clouds drawn in code, with no images to download, a 30 frames per second limit, and a full stop whenever it's hidden or scrolled out of view.",
       },
       {
         question: "Does it work on phones?",

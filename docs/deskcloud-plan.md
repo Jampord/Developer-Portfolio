@@ -31,7 +31,7 @@ Goals, in order:
 | Location | Inside this repo. A new route group `(lab)` with its **own layout** (no portfolio Nav/Footer/frame). URL `/lab/deskcloud`. |
 | Stack | Existing stack only: Next.js 16 (App Router), React 19, TypeScript, Tailwind 4, next-themes, Resend, Upstash. **No new runtime dependencies.** Only new dev dependency: `vitest`. |
 | Rendering | **Canvas 2D**, hand-written. No PixiJS, Three.js, SVG scene or image assets. GSAP is allowed for page UI only, never for the scene. |
-| Art style | **Procedural, flat**: everything drawn in code from palettes. |
+| Art style | **Procedural, flat**: everything drawn in code from palettes. (Changed after launch to soft, shaded clouds; see §11.) |
 | Themes | **One theme at launch: Sky.** Clouds part around icons, with small accents (birds by day, stars by night). Built as a theme config so more themes can be added later. |
 | Day / night | Follows the site's **light/dark theme** (`next-themes` `resolvedTheme`): light → day sky, dark → night sky. Smooth palette cross-fade on toggle. |
 | Icons | 5–7 HTML `<button>` icons layered over the canvas. Drag (mouse and touch), **+ New file**, **Reset**, open on double-click (mouse) or tap (touch) for real links: CV, GitHub, case study, home. |
@@ -351,3 +351,5 @@ Recorded after the build, so this document stays an accurate record.
 | 6 | The waitlist section shipped first with a "form opens soon" note. The page stayed `noindex` until PR 8. | The hero's CTA needed a target before the form existed. |
 | 7 | Also fixed the contact form, which showed the generic error instead of the rate-limit message on a 429. | Found while mirroring the contact form. |
 | 8 | Deskcloud is added at the end of `projects.ts`. The case study's outcome has no Lighthouse scores or sign-up counts yet. | Keeps the existing projects' order. The numbers couldn't be measured during the build and weren't invented. |
+| After launch | The sky became the home page hero's background. The engine gained `setOrbTop` (keep the sun and moon below a sticky header) and fades the orb out when no spot has room. | On the hero the canvas runs up behind the navbar, and on phones the top of the hero has no open sky. |
+| After launch | Flat two-tone clouds became soft, shaded puffs stamped from cached sprites (one per layer and light side, rebuilt only when colours change). Clouds are lit from the sun's side, back clouds are softer and partly transparent, the sky has a third stop for horizon haze, and the sun has a glow and a wide halo. The sun and moon scale with the canvas (7% of its shorter side, 40–90 px). The day sky is deeper. | The flat style read as clip art behind the portfolio's hero. Sprites keep the per-frame cost low: about 0.33 ms of JavaScript per frame at 1280×800, up from about 0.14 ms. |
