@@ -36,6 +36,8 @@ export type Cloud = {
   /** Back clouds are smaller, slower and fainter, and drawn first */
   layer: "back" | "front";
   puffs: Puff[];
+  /** The side it's flowing around an icon on: -1 over, 1 under, 0 when nothing is in the way */
+  flow: -1 | 0 | 1;
 };
 
 export type EngineOptions = {
