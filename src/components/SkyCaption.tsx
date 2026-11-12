@@ -1,6 +1,6 @@
 "use client";
 
-import { createElement, useEffect, useRef } from "react";
+import { createElement, useEffect, useRef, type CSSProperties } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -52,6 +52,14 @@ function weatherIcon(weather: SkyWeather | null, night: boolean): LucideIcon {
       return night ? Moon : Sun;
   }
 }
+
+/** Where each little cloud leaks out of the button, how far it drifts, its size and its delay */
+const LEAKS: (CSSProperties & Record<`--${string}`, string>)[] = [
+  { "--x": "86%", "--y": "25%", "--dx": "42px", "--dy": "-28px", "--s": "16px", "--d": "0s" },
+  { "--x": "68%", "--y": "15%", "--dx": "18px", "--dy": "-36px", "--s": "12px", "--d": "0.65s" },
+  { "--x": "92%", "--y": "50%", "--dx": "56px", "--dy": "-6px", "--s": "18px", "--d": "1.3s" },
+  { "--x": "44%", "--y": "20%", "--dx": "6px", "--dy": "-32px", "--s": "11px", "--d": "1.95s" },
+];
 
 /** Set when the big button turns the sky on, so focus lands on the switch that replaced it */
 let focusSkySwitch = false;
@@ -121,7 +129,17 @@ export function SkyCaption() {
   // With the sky off (the default), one button turns it on
   if (pref === "off") {
     return (
-      <div data-hero-fade className="flex flex-col items-start gap-2">
+      <div data-hero-fade className="sky-leak-host relative flex w-fit flex-col items-start gap-2">
+        {/* Clouds and wind slip out from behind the button on hover (see globals.css) */}
+        <span aria-hidden="true" className="sky-leak">
+          {LEAKS.map((leak, i) => (
+            <span key={i} className="sky-leak-puff" style={leak} />
+          ))}
+          <svg className="sky-leak-wind" viewBox="0 0 72 24">
+            <path d="M0 9 C 18 6, 38 11, 70 4" />
+            <path d="M4 16 C 24 19, 44 13, 66 18" />
+          </svg>
+        </span>
         <button
           type="button"
           title={sky.turnOnHint}
@@ -129,9 +147,9 @@ export function SkyCaption() {
             focusSkySwitch = true;
             setHeroSky("on");
           }}
-          className={`group inline-flex items-center gap-2 rounded-full py-2.5 pl-4 pr-5 text-sm font-medium transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${surface}`}
+          className={`group inline-flex items-center gap-2 rounded-full py-2.5 pl-4 pr-5 text-sm font-medium transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary relative ${surface}`}
         >
-          <Cloud aria-hidden="true" className="size-4 text-primary transition-transform group-hover:-translate-y-px" />
+          <Cloud aria-hidden="true" className="size-4 text-primary transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-px" />
           {sky.turnOn}
         </button>
       </div>
