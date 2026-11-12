@@ -12,6 +12,11 @@ export const site = {
   },
   tagline:
     "Asset management for 1,500+ staff across 20 departments. An events platform for a church. An offline ledger for my mom's shop.",
+  /** Credit for the hero's background */
+  sky: {
+    caption: "This sky is Deskcloud: a canvas engine I wrote by hand. 30fps, no libraries.",
+    href: "/lab/deskcloud",
+  },
   cvPath: "/john-ford-actub-cv.pdf",
   nav: [
     { label: "Work", href: "/#work" },

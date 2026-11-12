@@ -9,7 +9,7 @@ import { siteUrl } from "@/lib/url";
 
 export default function Home() {
   return (
-    <div className="mx-auto w-[calc(100%-2rem)] max-w-6xl">
+    <>
       <JsonLd
         data={{
           "@context": "https://schema.org",
@@ -20,11 +20,14 @@ export default function Home() {
           sameAs: [site.links.github, site.links.linkedin],
         }}
       />
+      {/* The hero is full width for its sky; everything below sits in the page column */}
       <Hero />
-      <SelectedWork />
-      <About />
-      <Experience />
-      <Contact />
-    </div>
+      <div className="mx-auto w-[calc(100%-2rem)] max-w-6xl">
+        <SelectedWork />
+        <About />
+        <Experience />
+        <Contact />
+      </div>
+    </>
   );
 }
