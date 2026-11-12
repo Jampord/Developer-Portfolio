@@ -70,7 +70,7 @@ export const projects: Project[] = [
       },
     ],
     outcome:
-      "These modules weren't CRUD screens. Each one was a real business process, so I had to understand the workflow first and then turn it into a usable interface. The work sharpened my skills in complex state management, API integration, form validation and business logic in React.",
+      "Vladimir manages assets for 1,500+ staff across 20 departments. These modules weren't CRUD screens. Each one was a real business process, so I had to understand the workflow first and then turn it into a usable interface. The work sharpened my skills in complex state management, API integration, form validation and business logic in React.",
     images: [
       {
         src: "/projects/vladimir/dashboard.png",
@@ -146,7 +146,7 @@ export const projects: Project[] = [
       },
     ],
     outcome:
-      "This was my first project with real stakeholders. I talked to the people who'd use it, wrote a brief, and set a measurable goal before writing code: 8 events shared over 4 weeks, averaging 15 or more opens each. I shipped it through 20 pull requests, with CI running type checks, lint, over 200 Vitest cases, a Playwright smoke test and a production build. It taught me to design around how people actually communicate, not how I'd like them to.",
+      "This was my first project with real stakeholders. I talked to the people who'd use it and wrote a brief before writing any code. I shipped it through 20 pull requests, with CI running type checks, lint, over 200 Vitest cases, a Playwright smoke test and a production build. It taught me to design around how people actually communicate, not how I'd like them to.",
     links: {
       live: "https://camac-sf-web.vercel.app",
       repos: [{ label: "Source code", href: "https://github.com/Jampord/camac-sf-web" }],
@@ -219,8 +219,8 @@ export const projects: Project[] = [
     icon: { label: "Cleo's Tracker", glyph: NotebookPen },
     title: "Cleo's Transaction Tracker",
     summary:
-      "An offline Android app that replaces a family shop's paper notebook. It records GCash, mobile load and water sales, tracks who owes what, and checks the cash drawer at the end of the day.",
-    client: "Personal project",
+      "An offline Android app that replaces the paper notebook in my mom's shop. It records GCash, mobile load and water sales, tracks who owes what, and checks the cash drawer at the end of the day.",
+    client: "Personal project for my mom's shop",
     role: "Mobile Developer",
     year: "2026",
     note: "An Android app that isn't on a store yet. It's being piloted alongside the paper notebook it replaces, and the source code is public.",
@@ -233,7 +233,7 @@ export const projects: Project[] = [
       { group: "Tooling", items: ["EAS Build", "ESLint"] },
     ],
     problem:
-      "Cleo runs a small family shop in the Philippines that handles GCash cash-in and cash-out, mobile load and mineral water. Everything went into a paper notebook: each transaction, its fee, who still owed money, and at the end of the day, whether the cash drawer and the GCash wallet added up. That's slow, easy to get wrong, and hard to look back through. I built an app that does the same job on her phone, works with no internet connection, and does the arithmetic for her.",
+      "My mom, Cleo, runs a small shop in the Philippines that handles GCash cash-in and cash-out, mobile load and mineral water. Everything went into a paper notebook: each transaction, its fee, who still owed money, and at the end of the day, whether the cash drawer and the GCash wallet added up. That's slow, easy to get wrong, and hard to look back through. I built an app that does the same job on her phone, works with no internet connection, and does the arithmetic for her.",
     approach: [
       {
         title: "An entry form that knows the fees",
@@ -253,7 +253,7 @@ export const projects: Project[] = [
       },
     ],
     outcome:
-      "This was my first React Native app, and my first time designing for one specific person instead of \"users\". The hardest part wasn't the code but the rules: how fees work, where a partial payment goes, what counts as short. I kept all of that in plain TypeScript functions and documented every formula with worked examples, which made the app much easier to trust. Next on the roadmap are automated tests, weekly charts and an optional sync backend.",
+      "This was my first React Native app, and my first time designing for one specific person instead of \"users\": my mom, at her own counter, with no internet to rely on. The hardest part wasn't the code but the rules: how fees work, where a partial payment goes, what counts as short. I kept all of that in plain TypeScript functions and documented every formula with worked examples, which made the app much easier to trust. Next on the roadmap are automated tests, weekly charts and an optional sync backend.",
     links: {
       repos: [{ label: "Source code", href: "https://github.com/Jampord/Cleos-Transaction-Tracker" }],
     },
