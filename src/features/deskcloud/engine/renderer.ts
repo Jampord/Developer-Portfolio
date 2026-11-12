@@ -2,6 +2,7 @@ import type { Palette, Rgb, Theme } from "../themes/types";
 import type { Accents } from "./accents";
 import { SKY_MID } from "./skyStops";
 import type { Cloud, Size } from "./types";
+import { shadeVapour, splatClouds, vapourGrid, type VapourGrid } from "./vapour";
 
 export type Scene = {
   size: Size;
@@ -55,7 +56,8 @@ const WHITE: Rgb = [255, 255, 255];
 
 /**
  * Draw one frame: sky gradient → sun's halo → stars → sun/moon → back clouds → front clouds → birds.
- * Everything is procedural; clouds are stamped from small cached sprites. dpr only scales the backing store.
+ * Everything is procedural; clouds are fused vapour shaded on a coarse grid and scaled up (vapour.ts).
+ * dpr only scales the backing store.
  */
 export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: Scene): void {
   const { size, palette, night, clouds, accents, theme } = scene;
@@ -83,9 +85,9 @@ export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: S
   };
   const time = scene.time ?? 0;
   const strike = findStrike(time, scene.lightning ?? 0);
-  drawClouds(ctx, clouds, "back", backPalette, accents, theme, width);
+  drawClouds(ctx, clouds, "back", backPalette, accents, theme, size);
   if (strike) drawBolt(ctx, size, strike);
-  drawClouds(ctx, clouds, "front", palette, accents, theme, width);
+  drawClouds(ctx, clouds, "front", palette, accents, theme, size);
   if (strike) drawStrikeGlow(ctx, size, strike);
   drawRain(ctx, size, palette, scene.rain ?? 0, time, scene.wind ?? 1);
   drawFog(ctx, size, palette, scene.fog ?? 0);
@@ -205,127 +207,51 @@ function moonShadow(ctx: CanvasRenderingContext2D, x: number, y: number, r: numb
 
 // --- Clouds -------------------------------------------------------------------------------
 
-type Light = "left" | "top" | "right";
+/** A low-resolution buffer per layer: the vapour is shaded there, then scaled up smoothly */
+type VapourLayer = { grid: VapourGrid; image: ImageData | null; canvas: HTMLCanvasElement | OffscreenCanvas | null };
+const vapourLayers: Record<Cloud["layer"], VapourLayer | null> = { back: null, front: null };
 
-/** Sprite size in device px; a puff is never drawn much larger than this */
-const SPRITE_SIZE = 192;
-
-/** Direction the light travels in for each side it comes from (normalised in makeSprite) */
-const LIGHT_DIRECTION: Record<Light, readonly [number, number]> = {
-  left: [0.55, 1],
-  top: [0, 1],
-  right: [-0.55, 1],
-};
-
-type SpriteSlot = { key: string; canvas: HTMLCanvasElement | OffscreenCanvas };
-
-/** One sprite per layer and light side; rebuilt only when its colours change (e.g. during the day ↔ night fade) */
-const sprites = new Map<string, SpriteSlot>();
-
-function createCanvas(size: number): HTMLCanvasElement | OffscreenCanvas {
-  if (typeof OffscreenCanvas !== "undefined") return new OffscreenCanvas(size, size);
+function createCanvas(width: number, height: number): HTMLCanvasElement | OffscreenCanvas {
+  if (typeof OffscreenCanvas !== "undefined") return new OffscreenCanvas(width, height);
   const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = size;
+  canvas.width = width;
+  canvas.height = height;
   return canvas;
 }
 
-/**
- * A soft, shaded puff: an alpha mask that fades over its outer `softness`, filled with a
- * gradient from the lit colour (toward the light) through the base colour to the shadow.
- */
-function makeSprite(canvas: HTMLCanvasElement | OffscreenCanvas, palette: Palette, softness: number, light: Light) {
+function vapourLayer(layer: Cloud["layer"], size: Size): VapourLayer {
+  const current = vapourLayers[layer];
+  const grid = vapourGrid(size, current?.grid);
+  if (current && current.grid === grid) return current;
+  const canvas = createCanvas(grid.cols, grid.rows);
   const ctx = canvas.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
-  if (!ctx) return;
-  const c = SPRITE_SIZE / 2;
-  ctx.globalCompositeOperation = "source-over";
-  ctx.clearRect(0, 0, SPRITE_SIZE, SPRITE_SIZE);
-
-  const mask = ctx.createRadialGradient(c, c, 0, c, c, c);
-  mask.addColorStop(0, "#fff");
-  mask.addColorStop(Math.max(0, 1 - softness), "#fff");
-  mask.addColorStop(1, "rgb(255 255 255 / 0)");
-  ctx.fillStyle = mask;
-  ctx.fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE);
-
-  const [lx, ly] = LIGHT_DIRECTION[light];
-  const length = Math.hypot(lx, ly);
-  const ux = (lx / length) * c;
-  const uy = (ly / length) * c;
-  const shade = ctx.createLinearGradient(c - ux, c - uy, c + ux, c + uy);
-  shade.addColorStop(0, css(palette.cloudLight));
-  shade.addColorStop(0.45, css(palette.cloud));
-  shade.addColorStop(1, css(palette.cloudShadow));
-  ctx.globalCompositeOperation = "source-in";
-  ctx.fillStyle = shade;
-  ctx.fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE);
-  ctx.globalCompositeOperation = "source-over";
+  const next = { grid, canvas, image: ctx ? ctx.createImageData(grid.cols, grid.rows) : null };
+  vapourLayers[layer] = next;
+  return next;
 }
 
-function sprite(layer: Cloud["layer"], light: Light, palette: Palette, softness: number) {
-  const id = `${layer}:${light}`;
-  const key = `${css(palette.cloud)}|${css(palette.cloudLight)}|${css(palette.cloudShadow)}|${softness}`;
-  let slot = sprites.get(id);
-  if (!slot) {
-    slot = { key: "", canvas: createCanvas(SPRITE_SIZE) };
-    sprites.set(id, slot);
-  }
-  if (slot.key !== key) {
-    makeSprite(slot.canvas, palette, softness, light);
-    slot.key = key;
-  }
-  return slot.canvas;
-}
-
-/** Below this share of its size a squeezed puff is hidden; above the second it's fully drawn */
-const SQUEEZE_HIDE = 0.3;
-const SQUEEZE_FULL = 0.55;
-
-/** Puffs drawn lowest first, so the rounded tops overlap the shaded bases below them */
-const drawOrder = new WeakMap<Cloud, number[]>();
-
-function puffOrder(cloud: Cloud): number[] {
-  let order = drawOrder.get(cloud);
-  if (!order || order.length !== cloud.puffs.length) {
-    order = cloud.puffs.map((_, i) => i).sort((a, b) => cloud.puffs[b].restDy - cloud.puffs[a].restDy);
-    drawOrder.set(cloud, order);
-  }
-  return order;
-}
-
-/** Which side the light reaches a cloud from: the sun's (or moon's) side, or straight above when it's overhead */
-function lightFor(cloud: Cloud, { orb }: Accents, width: number): Light {
-  const dx = orb.x - cloud.x;
-  if (Math.abs(dx) < width * 0.12) return "top";
-  return dx < 0 ? "left" : "right";
-}
-
+/** One layer of clouds as fused vapour (see vapour.ts), lit from the sun's or moon's side */
 function drawClouds(
   ctx: CanvasRenderingContext2D,
   clouds: Cloud[],
   layer: Cloud["layer"],
   palette: Palette,
-  accents: Accents,
+  { orb }: Accents,
   theme: Theme,
-  width: number,
+  size: Size,
 ) {
-  const { softness, opacity } = theme.clouds[layer];
-  // The visible edge sits partway into the fade, so the sprite is drawn a little larger than the puff
-  const spread = 1 / (1 - softness / 2);
-  ctx.globalAlpha = opacity;
-  for (const cloud of clouds) {
-    if (cloud.layer !== layer) continue;
-    const image = sprite(layer, lightFor(cloud, accents, width), palette, softness);
-    for (const i of puffOrder(cloud)) {
-      const p = cloud.puffs[i];
-      // A puff squeezed to a fraction of its size reads as a stray dot, so it fades out instead
-      const fade = Math.min(1, Math.max(0, (p.scale - SQUEEZE_HIDE) / (SQUEEZE_FULL - SQUEEZE_HIDE)));
-      const r = p.r * p.scale * spread;
-      if (fade <= 0 || r < 0.5) continue;
-      ctx.globalAlpha = opacity * fade;
-      ctx.drawImage(image, cloud.x + p.dx - r, cloud.y + p.dy - r, r * 2, r * 2);
-    }
-  }
-  ctx.globalAlpha = 1;
+  const buffer = vapourLayer(layer, size);
+  const { grid, canvas, image } = buffer;
+  const small = canvas?.getContext("2d") as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null;
+  if (!canvas || !image || !small) return;
+
+  splatClouds(grid, clouds, layer);
+  shadeVapour(grid, image.data, palette, orb, theme.clouds[layer].opacity);
+  small.putImageData(image, 0, 0);
+
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(canvas, 0, 0, grid.cols * grid.cell, grid.rows * grid.cell);
 }
 
 /** Rain streaks per 100,000 px² of canvas at full strength, and how they fall (px/s) */
