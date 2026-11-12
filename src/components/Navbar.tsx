@@ -32,7 +32,7 @@ export function Nav() {
           <ThemeToggle />
           <Link
             href="/#contact"
-            className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
           >
             Let&apos;s talk
           </Link>
