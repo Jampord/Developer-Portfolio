@@ -7,6 +7,8 @@ import { siteUrl } from "@/lib/url";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { DeferredCommandPalette, DeferredCursor } from "@/components/Deferred";
+import { SkyClock } from "@/components/SkyClock";
+import { themeScript } from "@/lib/theme-script";
 
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
@@ -47,8 +49,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       suppressHydrationWarning
       className={`${bricolage.variable} ${geist.variable} ${jetbrains.variable}`}
     >
+      <head>
+        {/* In clock mode the Pampanga clock picks the theme before first paint (and before next-themes reads it) */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <SkyClock />
           <DeferredCursor />
           <DeferredCommandPalette />
           {/* Each route group's layout adds its own shell: (site) the portfolio frame, (lab) a bare page */}

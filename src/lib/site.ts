@@ -14,8 +14,14 @@ export const site = {
     "Asset management for 1,500+ staff across 20 departments. An events platform for a church. An offline ledger for my mom's shop.",
   /** Credit for the hero's background */
   sky: {
-    caption: "This sky is Deskcloud: a canvas engine I wrote by hand. 30fps, no libraries.",
+    caption: "Drawn by Deskcloud, a canvas engine I wrote by hand. 30fps, no libraries.",
     href: "/lab/deskcloud",
+    place: "San Fernando, Pampanga",
+    /** e.g. "Live sky over San Fernando, Pampanga · 9:14 PM" */
+    live: (place: string, time: string) => `Live sky over ${place} · ${time}`,
+    switchLabel: "Day and night follow",
+    modes: { clock: "Pampanga clock", theme: "My theme" },
+    palette: { toClock: "Follow the Pampanga clock for day and night", toTheme: "Stop following the Pampanga clock" },
   },
   cvPath: "/john-ford-actub-cv.pdf",
   nav: [

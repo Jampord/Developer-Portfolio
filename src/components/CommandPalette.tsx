@@ -10,6 +10,7 @@ import {
   Download,
   ExternalLink,
   FolderOpen,
+  Clock,
   Hash,
   Moon,
   Search,
@@ -19,6 +20,7 @@ import {
 import { projects } from "@/data/projects";
 import { site } from "@/lib/site";
 import { OPEN_PALETTE_EVENT } from "@/lib/command-palette";
+import { setSkyMode, useSkyMode } from "@/lib/sky-mode";
 
 type CopyState = "idle" | "done" | "failed";
 
@@ -57,6 +59,7 @@ const groupClass =
 export function CommandPalette() {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
+  const skyMode = useSkyMode();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -184,7 +187,18 @@ export function CommandPalette() {
                 value="toggle theme"
                 keywords={["dark", "light", "theme", "appearance"]}
                 onSelect={() => {
+                  setSkyMode("theme");
                   setTheme(isDark ? "light" : "dark");
+                  setOpen(false);
+                }}
+              />
+              <PaletteItem
+                icon={Clock}
+                label={skyMode === "clock" ? site.sky.palette.toTheme : site.sky.palette.toClock}
+                value="sky follows clock"
+                keywords={["sky", "clock", "time", "pampanga", "sunset", "auto"]}
+                onSelect={() => {
+                  setSkyMode(skyMode === "clock" ? "theme" : "clock");
                   setOpen(false);
                 }}
               />

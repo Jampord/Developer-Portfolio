@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
 import { createEngine, type Engine } from "../engine/engine";
 import type { Mode, Rect } from "../engine/types";
+import type { Palette } from "../themes/types";
 import { sky } from "../themes";
 import { skyBackgroundClass, skyBackgroundStyle } from "./demoFrame";
 
@@ -17,11 +18,15 @@ type Props = {
   obstacles: readonly Rect[];
   /** Where the visible sky starts, in CSS px from the canvas top; the sun and moon stay below it */
   orbTop?: number;
+  /** Day and night palettes to use instead of the theme's (e.g. tinted for the time of day) */
+  palettes?: { day: Palette; night: Palette } | null;
+  /** The moon's phase, 0–1; leave out for a full moon */
+  moonPhase?: number | null;
   className?: string;
 };
 
 /** Owns the <canvas> and the engine instance; purely decorative, all interaction lives on the HTML above it */
-export function DeskcloudCanvas({ obstacles, orbTop = 0, className = "" }: Props) {
+export function DeskcloudCanvas({ obstacles, orbTop = 0, palettes = null, moonPhase = null, className = "" }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
   const { resolvedTheme } = useTheme();
@@ -72,6 +77,14 @@ export function DeskcloudCanvas({ obstacles, orbTop = 0, className = "" }: Props
   useEffect(() => {
     engineRef.current?.setOrbTop(orbTop);
   }, [orbTop]);
+
+  useEffect(() => {
+    engineRef.current?.setPalettes(palettes);
+  }, [palettes]);
+
+  useEffect(() => {
+    engineRef.current?.setMoonPhase(moonPhase);
+  }, [moonPhase]);
 
   // Follow the site's light/dark toggle (and the command palette's theme action) with a cross-fade
   useEffect(() => {
