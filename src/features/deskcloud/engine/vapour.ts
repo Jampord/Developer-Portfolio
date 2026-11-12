@@ -12,11 +12,11 @@ import type { Cloud, Size, Vec2 } from "./types";
 /** How far a puff's density reaches, as a multiple of its radius (more = puffs fuse sooner) */
 export const FUSE = 1.35;
 /** Density below this is clear sky; above the second it's fully opaque cloud */
-export const EDGE_LOW = 0.12;
-export const EDGE_HIGH = 0.5;
+export const EDGE_LOW = 0.2;
+export const EDGE_HIGH = 0.4;
 /** Grid cells per layer to aim for, which sets the cell size (bigger screens get coarser cells) */
-const TARGET_CELLS = 100_000;
-const MIN_CELL = 4;
+const TARGET_CELLS = 160_000;
+const MIN_CELL = 3;
 
 /** Below this share of its size a squeezed puff adds nothing; above the second it adds in full */
 const SQUEEZE_HIDE = 0.3;
