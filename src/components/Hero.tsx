@@ -17,10 +17,6 @@ const nameWords = nameLines.map((line) =>
 /** Marks an element as a box the sky's clouds part around */
 const skyObstacle = { [SKY_OBSTACLE_ATTR]: "" };
 
-const nameWash: CSSProperties = {
-  background: "radial-gradient(closest-side, color-mix(in oklab, var(--background) 65%, transparent), transparent)",
-};
-
 // Text sits on the sky, so anything small gets a frosted surface to stay readable
 const surface = "border border-foreground/10 bg-card/90 backdrop-blur-md";
 
@@ -58,10 +54,8 @@ export function Hero() {
         <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-end md:gap-12">
           <h1
             aria-label={site.name}
-            className="relative font-display text-[clamp(3rem,10vw,8.5rem)] font-extrabold uppercase leading-[0.9] tracking-tight"
+            className="font-display text-[clamp(3rem,10vw,8.5rem)] font-extrabold uppercase leading-[0.9] tracking-tight"
           >
-            {/* A soft wash in the page colour, so clouds passing behind the name lose contrast */}
-            <span aria-hidden="true" className="absolute -inset-x-12 -inset-y-10 -z-10" style={nameWash} />
             {nameWords.map((words, li) => (
               // Each line is its own obstacle, sized to its text
               <span key={li} aria-hidden="true" className="block w-fit" {...skyObstacle}>
