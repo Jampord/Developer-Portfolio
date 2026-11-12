@@ -7,12 +7,6 @@ export const SETTLE_DT = 1 / 30;
 /** Extra room past each edge before a drifting cloud wraps around, in px */
 export const WRAP_MARGIN = 16;
 const PLACEMENT_TRIES = 24;
-/** How far along a cloud a detour bends its neighbours, in multiples of the two puffs' radii */
-const FLOW_SPREAD = 1.5;
-
-// Scratch space for reflow, reused every frame (a cloud has a handful of puffs)
-const clearances: number[] = [];
-const detours: (number | null)[] = [];
 
 export type CloudContext = { field: Field; size: Size; theme: Theme };
 
@@ -65,7 +59,7 @@ export function createClouds(size: Size, field: Field, theme: Theme, rng: () => 
   for (let i = 0; i < count; i++) {
     const layer = rng() < cfg.backShare ? "back" : "front";
     const puffs = makePuffs(rng, intBetween(rng, cfg.puffCount), between(rng, cfg[layer].radius));
-    const cloud: Cloud = { x: 0, y: 0, vx: between(rng, cfg[layer].speed), layer, puffs, flow: 0 };
+    const cloud: Cloud = { x: 0, y: 0, vx: between(rng, cfg[layer].speed), layer, puffs };
     const needed = 0.8 * cloudExtent(cloud);
 
     let best = { x: 0, y: 0, clearance: -1 };
@@ -119,59 +113,17 @@ function reflowCloud(cloud: Cloud, dt: number, { field, theme }: CloudContext) {
   const k = theme.stiffness;
   const damping = 2 * Math.sqrt(k);
 
-  const { puffs } = cloud;
-  const step = theme.cellSize / 2;
-
-  // Flow around: the cloud passes over or under an icon, like water around a rock. Every puff that
-  // would touch it slides straight up (or down) to where it fits whole, and the cloud keeps that
-  // side until it's past, so it never tears in two or swings through the icon midway.
-  // Clearance is measured to blocked cells' centres, so half a cell is added to clear their edges too.
-  // Targets depend on rest positions only, so a moved puff doesn't feed back into its own target.
-  let blocked = false;
-  for (let i = 0; i < puffs.length; i++) {
-    const p = puffs[i];
-    const c = field.sample(cloud.x + p.restDx, cloud.y + p.restDy);
-    clearances[i] = c;
-    if (c < p.r) blocked = true;
-  }
-  if (!blocked) cloud.flow = 0;
-  else if (!cloud.flow || !flowAround(cloud, cloud.flow, field, theme, step)) {
-    // Pick the side that needs the smaller detour; with neither in reach (a block too tall, like the
-    // hero's name) the whole cloud parts the old way, so no puff ends up floating alone
-    const up = flowAround(cloud, -1, field, theme, step);
-    const upCost = up ? maxDetour(puffs.length) : Infinity;
-    const down = flowAround(cloud, 1, field, theme, step);
-    const downCost = down ? maxDetour(puffs.length) : Infinity;
-    cloud.flow = upCost === Infinity && downCost === Infinity ? 0 : upCost <= downCost ? -1 : 1;
-    if (cloud.flow !== 0) flowAround(cloud, cloud.flow, field, theme, step);
-  }
-  if (blocked && cloud.flow === 0) for (let i = 0; i < puffs.length; i++) detours[i] = null;
-  else if (!blocked) for (let i = 0; i < puffs.length; i++) detours[i] = 0;
-
-  for (let i = 0; i < puffs.length; i++) {
-    const p = puffs[i];
+  for (const p of cloud.puffs) {
+    // Targets depend on the rest position only, so a pushed puff doesn't feed back into its own target
     const px = cloud.x + p.restDx;
     const py = cloud.y + p.restDy;
-    const c = clearances[i];
+    const c = field.sample(px, py);
 
     let tx = p.restDx;
     let ty = p.restDy;
     let ts = 1;
-    let detour = detours[i];
 
-    if (detour !== null) {
-      // Neighbours bend along with a detour, so the cloud arcs around the icon in one piece
-      // instead of one puff breaking off on its own
-      for (let j = 0; j < puffs.length; j++) {
-        const other = detours[j];
-        if (j === i || !other || (detour !== 0 && Math.sign(other) !== Math.sign(detour))) continue;
-        const w = 1 - Math.abs(p.restDx - puffs[j].restDx) / (FLOW_SPREAD * (p.r + puffs[j].r));
-        const bent = other * w;
-        if (w > 0 && Math.abs(bent) > Math.abs(detour) && field.sample(px, py + bent) >= p.r) detour = bent;
-      }
-      ty += detour;
-    } else if (c < p.r) {
-      // Too far to go around (a large block): part sideways and shrink, as before
+    if (c < p.r) {
       const [nx, ny] = awayFromIcons(field, px, py, p);
       const push = (p.r - c) * theme.pushStrength;
       tx += nx * push;
@@ -189,54 +141,6 @@ function reflowCloud(cloud: Cloud, dt: number, { field, theme }: CloudContext) {
     p.dy += p.vdy * dt;
     p.scale += p.vscale * dt;
   }
-}
-
-/** Fill `detours` with each puff's shift toward `dir` (-1 up, 1 down). False if any puff can't get there. */
-function flowAround(cloud: Cloud, dir: -1 | 1, field: Field, theme: Theme, step: number): boolean {
-  const { puffs } = cloud;
-  for (let i = 0; i < puffs.length; i++) {
-    const p = puffs[i];
-    if (clearances[i] >= p.r) {
-      detours[i] = 0;
-      continue;
-    }
-    const d = verticalDetour(field, cloud.x + p.restDx, cloud.y + p.restDy, p.r + step, dir, theme.flowReach, step);
-    if (d === null) return false;
-    detours[i] = d;
-  }
-  return true;
-}
-
-function maxDetour(count: number): number {
-  let max = 0;
-  for (let i = 0; i < count; i++) max = Math.max(max, Math.abs(detours[i] ?? 0));
-  return max;
-}
-
-/**
- * The vertical shift toward `dir` (-1 up, 1 down) to the first point with at least `need`
- * clearance, searched up to `reach` px in `step`s and interpolated between samples so it changes
- * smoothly as the cloud drifts. Null when it isn't within reach.
- */
-export function verticalDetour(
-  field: Field,
-  x: number,
-  y: number,
-  need: number,
-  dir: -1 | 1,
-  reach: number,
-  step: number,
-): number | null {
-  let prevD = 0;
-  let prevC = field.sample(x, y);
-  if (prevC >= need) return 0;
-  for (let d = step; d <= reach; d += step) {
-    const c = field.sample(x, y + dir * d);
-    if (c >= need) return dir * (prevD + (step * (need - prevC)) / (c - prevC));
-    prevD = d;
-    prevC = c;
-  }
-  return null;
 }
 
 /** Unit direction away from the nearest icons. Deep inside a padded icon the field is flat, so fall back to outward from the cloud. */

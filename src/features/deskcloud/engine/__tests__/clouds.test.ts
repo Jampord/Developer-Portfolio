@@ -111,7 +111,7 @@ describe("reflow", () => {
   it("regrows every puff to its rest shape once the icons are gone", () => {
     const clouds = createClouds(size, context([]).field, sky, mulberry32(11));
     settleClouds(clouds, 200, context(iconsOnClouds(clouds, 3)));
-    expect(clouds.some((c) => c.puffs.some((p) => Math.abs(p.dy - p.restDy) > 10))).toBe(true);
+    expect(clouds.some((c) => c.puffs.some((p) => p.scale < 0.9))).toBe(true);
 
     settleClouds(clouds, 200, context([]));
 
@@ -122,35 +122,6 @@ describe("reflow", () => {
         expect(p.scale).toBeCloseTo(1, 3);
       }
     }
-  });
-
-  it("flows a whole cloud over or under an icon in one piece, instead of fading puffs", () => {
-    const clouds = createClouds(size, context([]).field, sky, mulberry32(11));
-    const [icon] = iconsOnClouds(clouds, 1);
-    settleClouds(clouds, 200, context([icon]));
-
-    const cloud = clouds[0];
-    expect(cloud.flow).not.toBe(0);
-    for (const p of cloud.puffs) {
-      expect(p.scale).toBeGreaterThan(0.99); // nothing shrinks or fades
-      expect(p.dx).toBeCloseTo(p.restDx, 2); // it only moves up or down…
-      expect((p.dy - p.restDy) * cloud.flow).toBeGreaterThanOrEqual(-0.01); // …all to the same side
-    }
-  });
-
-  it("keeps its side while drifting past an icon", () => {
-    const ctx = context([{ x: 380, y: 200, ...ICON }]);
-    const clouds = createClouds(size, context([]).field, sky, mulberry32(11));
-    const cloud = clouds[0];
-    cloud.y = 230; // across the icon's middle
-    cloud.x = 300;
-    const sides = new Set<number>();
-    for (let t = 0; t < 400; t++) {
-      cloud.x += 0.5;
-      stepClouds([cloud], 1 / 30, ctx, false);
-      if (cloud.flow !== 0) sides.add(cloud.flow);
-    }
-    expect(sides.size).toBe(1);
   });
 
   it("does not move clouds while settling", () => {
