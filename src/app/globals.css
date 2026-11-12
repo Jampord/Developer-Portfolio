@@ -13,6 +13,11 @@
   /* The sun's amber, for calls to action and highlights; a little deeper here so it holds up on the pale page */
   --accent: #f6b93b;
   --accent-foreground: #0a1f19;
+  /* The sky's cloud colours (themes/sky.ts), for the wisps that leak out of "Turn on the sky" */
+  --puff-light: #ffffff;
+  --puff: #eef4fb;
+  --puff-shadow: #a6bcd8;
+  --wind: rgb(13 147 115 / 0.55);
 }
 
 .dark {
@@ -24,6 +29,10 @@
   --frame: #0f4a3c;
   --accent: #ffd363;
   --accent-foreground: #0a1f19;
+  --puff-light: #8090b8;
+  --puff: #54648c;
+  --puff-shadow: #2e3a5e;
+  --wind: rgb(46 224 176 / 0.5);
 }
 
 @theme inline {
@@ -158,6 +167,106 @@ body {
   [data-hero-sky-reveal] [data-hero-sky-icons] li {
     animation: sky-icon-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
     animation-delay: calc(0.7s + var(--icon-i, 0) * 120ms);
+  }
+}
+
+/* "Turn on the sky": while it's hovered or focused, small clouds and gusts of wind slip out from
+   behind it, as if the sky were already leaking through. Only for visitors who allow motion. */
+.sky-leak {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.sky-leak-puff,
+.sky-leak-puff::before,
+.sky-leak-puff::after {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 40% 30%, var(--puff-light), var(--puff) 50%, var(--puff-shadow));
+}
+.sky-leak-puff {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  opacity: 0;
+  filter: drop-shadow(0 1px 1.5px rgb(10 31 25 / 0.12));
+}
+.sky-leak-puff::before,
+.sky-leak-puff::after {
+  content: "";
+  bottom: 0;
+}
+.sky-leak-puff::before {
+  left: -45%;
+  width: 70%;
+  height: 70%;
+}
+.sky-leak-puff::after {
+  right: -50%;
+  width: 80%;
+  height: 80%;
+}
+.sky-leak-wind {
+  position: absolute;
+  left: calc(100% - 1.25rem);
+  top: 50%;
+  width: 4.5rem;
+  translate: 0 -50%;
+  overflow: visible;
+  color: var(--wind);
+}
+.sky-leak-wind path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-dasharray: 22 100;
+  stroke-dashoffset: 22;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes sky-leak-puff {
+    /* Seeps out from behind the button, lingers, then thins away as it drifts off */
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0.5);
+    }
+    18% {
+      opacity: 1;
+    }
+    60% {
+      opacity: 0.9;
+      transform: translate(calc(var(--dx) * 0.55), calc(var(--dy) * 0.55)) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--dx), var(--dy)) scale(1.2);
+    }
+  }
+  @keyframes sky-leak-wind {
+    0% {
+      stroke-dashoffset: 22;
+      opacity: 0;
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      stroke-dashoffset: -90;
+      opacity: 0;
+    }
+  }
+
+  .sky-leak-host:is(:hover, :has(:focus-visible), :active) .sky-leak-puff {
+    animation: sky-leak-puff 2.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) var(--d) infinite;
+  }
+  .sky-leak-host:is(:hover, :has(:focus-visible), :active) .sky-leak-wind path {
+    animation: sky-leak-wind 1.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  }
+  .sky-leak-host:is(:hover, :has(:focus-visible), :active) .sky-leak-wind path + path {
+    animation-delay: 0.7s;
   }
 }
 
