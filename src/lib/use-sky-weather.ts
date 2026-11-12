@@ -10,11 +10,15 @@ let weather: SkyWeather | null = null;
 let timer: ReturnType<typeof setInterval> | undefined;
 const listeners = new Set<() => void>();
 
-/** In development, ?weather=<WMO code> previews a weather without waiting for it (e.g. ?weather=63 for rain) */
+/**
+ * In development, ?weather=<WMO code> previews a weather without waiting for it (e.g. ?weather=95
+ * for a thunderstorm), and &wind=<km/h> adds wind (e.g. &wind=110 for a typhoon)
+ */
 function previewWeather(): SkyWeather | null {
   if (process.env.NODE_ENV === "production") return null;
-  const code = new URLSearchParams(window.location.search).get("weather");
-  return code === null ? null : describeWeather(Number(code), 28);
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("weather");
+  return code === null ? null : describeWeather(Number(code), 28, Number(params.get("wind") ?? 8));
 }
 
 async function load() {

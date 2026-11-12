@@ -54,3 +54,28 @@ export const overcastNight: Palette = {
   cloudLight: [92, 100, 118],
   cloudShadow: [44, 50, 66],
 };
+
+/**
+ * A thunderstorm by day: slate-grey, so lightning stands out. Kept mid-grey rather than dark, so
+ * the hero's near-black name still has at least 3:1 contrast (the bar for large text).
+ */
+export const stormDay: Palette = {
+  ...overcastDay,
+  skyTop: [92, 104, 122],
+  skyBottom: [130, 140, 154],
+  skyHaze: [160, 168, 180],
+  cloud: [162, 170, 182],
+  cloudLight: [190, 196, 208],
+  cloudShadow: [108, 118, 134],
+};
+
+/** A thunderstorm at night: near-black sky and cloud */
+export const stormNight: Palette = {
+  ...overcastNight,
+  skyTop: [6, 8, 16],
+  skyBottom: [18, 22, 34],
+  skyHaze: [30, 34, 48],
+  cloud: [44, 50, 66],
+  cloudLight: [64, 70, 88],
+  cloudShadow: [26, 30, 42],
+};

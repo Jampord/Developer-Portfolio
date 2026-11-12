@@ -23,13 +23,18 @@ export type Engine = {
   /** Swap the theme (e.g. more, bigger clouds for overcast weather); the clouds are laid out again */
   setTheme(theme: Theme): void;
   /** Rain streaks (0–1, none with reduced motion) and how much cloud hides the sun or moon (0–1) */
-  setWeather(weather: { rain: number; sunHidden: number }): void;
+  setWeather(weather: Weather): void;
   /** On: stop the loop and draw a settled scene once per change */
   setReducedMotion(on: boolean): void;
   pause(): void;
   resume(): void;
   destroy(): void;
 };
+
+/** Rain, lightning and fog (0–1), how much cloud hides the sun (0–1), and a wind multiplier for the rain's slant */
+export type Weather = { rain: number; sunHidden: number; lightning: number; fog: number; wind: number };
+
+const CALM: Weather = { rain: 0, sunHidden: 0, lightning: 0, fog: 0, wind: 1 };
 
 /** Enough fixed steps for the springs to come to rest */
 const SETTLE_STEPS = 90;
@@ -51,8 +56,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   let modeT = modeTarget;
   let paletteOverride: { day: Palette; night: Palette } | null = null;
   let moonPhase: number | null = null;
-  let rain = 0;
-  let sunHidden = 0;
+  let weather = CALM;
   /** Seconds the loop has run, for the falling rain */
   let elapsed = 0;
   let reducedMotion = false;
@@ -91,8 +95,12 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
     const { day, night } = paletteOverride ?? theme.palettes;
     const t = modeT * modeT * (3 - 2 * modeT); // smoothstep
     renderScene(ctx, dpr, { size, palette: lerpPalette(day, night, t), night: t, clouds, accents, theme, moonPhase,
-      rain: reducedMotion ? 0 : rain,
-      sunHidden,
+      // Nothing falls or flashes with reduced motion
+      rain: reducedMotion ? 0 : weather.rain,
+      lightning: reducedMotion ? 0 : weather.lightning,
+      sunHidden: weather.sunHidden,
+      fog: weather.fog,
+      wind: weather.wind,
       time: elapsed,
     });
   }
@@ -177,8 +185,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
 
     setWeather(next) {
       if (destroyed) return;
-      rain = next.rain;
-      sunHidden = next.sunHidden;
+      weather = { ...next };
       if (!loop.running) draw();
     },
 

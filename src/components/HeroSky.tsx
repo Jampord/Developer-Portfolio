@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DeskcloudCanvas } from "@/features/deskcloud/components/DeskcloudCanvas";
 import { lerpPalette } from "@/features/deskcloud/engine/renderer";
 import { sky } from "@/features/deskcloud/themes/sky";
-import { dawn, golden, overcastDay, overcastNight } from "@/features/deskcloud/themes/skyTints";
+import { dawn, golden, overcastDay, overcastNight, stormDay, stormNight } from "@/features/deskcloud/themes/skyTints";
 import { withCloudCover } from "@/features/deskcloud/themes/weather";
-import { FALLBACK_EFFECT, WEATHER_EFFECTS } from "@/lib/sky-weather";
+import { weatherEffect } from "@/lib/sky-weather";
 import { useSkyWeather } from "@/lib/use-sky-weather";
 import { moonPhase, skyTime } from "@/lib/sky-clock";
 import { useNow } from "@/lib/use-now";
@@ -33,15 +33,15 @@ export function HeroSky() {
   // and the current weather (partly cloudy until it arrives, or if it can't be fetched)
   const now = useNow(60_000);
   const weather = useSkyWeather();
-  const effect = weather ? WEATHER_EFFECTS[weather.kind] : FALLBACK_EFFECT;
+  const effect = useMemo(() => weatherEffect(weather), [weather]);
   const theme = useMemo(() => withCloudCover(sky, effect), [effect]);
   const palettes = useMemo(() => {
     if (now === null) return null;
     const { dawn: d, golden: g } = skyTime(now);
     const day = lerpPalette(lerpPalette(sky.palettes.day, dawn, d), golden, g);
     return {
-      day: lerpPalette(day, overcastDay, effect.grey),
-      night: lerpPalette(sky.palettes.night, overcastNight, effect.grey),
+      day: lerpPalette(lerpPalette(day, overcastDay, effect.grey), stormDay, effect.dark),
+      night: lerpPalette(lerpPalette(sky.palettes.night, overcastNight, effect.grey), stormNight, effect.dark),
     };
   }, [now, effect]);
   const phase = now === null ? null : moonPhase(now);

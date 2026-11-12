@@ -9,10 +9,10 @@ export const revalidate = 1800;
 const URL =
   "https://api.open-meteo.com/v1/forecast" +
   `?latitude=${PLACE.latitude}&longitude=${PLACE.longitude}` +
-  "&current=temperature_2m,weather_code" +
+  "&current=temperature_2m,weather_code,wind_speed_10m" +
   `&timezone=${encodeURIComponent(PLACE.timeZone)}`;
 
-type OpenMeteo = { current?: { temperature_2m?: number; weather_code?: number } };
+type OpenMeteo = { current?: { temperature_2m?: number; weather_code?: number; wind_speed_10m?: number } };
 
 async function currentWeather() {
   try {
@@ -20,7 +20,7 @@ async function currentWeather() {
     if (!res.ok) return null;
     const { current } = (await res.json()) as OpenMeteo;
     if (typeof current?.weather_code !== "number" || typeof current.temperature_2m !== "number") return null;
-    return describeWeather(current.weather_code, current.temperature_2m);
+    return describeWeather(current.weather_code, current.temperature_2m, current.wind_speed_10m ?? 0);
   } catch {
     // The sky falls back to partly cloudy, and the caption leaves the weather out
     return null;
