@@ -1,4 +1,12 @@
-import { createAccents, settleAccents, stepAccents, updateAccentTargets, type Accents } from "./accents";
+import {
+  createAccents,
+  settleAccents,
+  stepAccents,
+  updateAccentTargets,
+  type Accents,
+  type OrbArc,
+  type OrbPlacement,
+} from "./accents";
 import { createClouds, settleClouds, stepClouds, type CloudContext } from "./clouds";
 import { buildField, type Field } from "./field";
 import { buildGrid } from "./grid";
@@ -14,6 +22,13 @@ export type Engine = {
   setObstacles(rects: readonly Rect[]): void;
   /** Keep the sun and moon below this line, in CSS px from the canvas top (e.g. under a sticky header) */
   setOrbTop(top: number): void;
+  /**
+   * Put the sun or moon on its arc across the sky (e.g. from the real time of day), or null for the
+   * roomiest open sky. `horizon` is in px up from the canvas bottom.
+   */
+  setOrbArc(arc: OrbArc | null, horizon?: number): void;
+  /** What the sun or moon fades out behind (canvas px); null for every obstacle */
+  setOrbBlockers(rects: readonly Rect[] | null): void;
   /** Cross-fades the palette (instant with reduced motion or while stopped) */
   setMode(mode: Mode): void;
   /** Replace the theme's day and night palettes (e.g. tinted for the time of day); null restores them */
@@ -46,7 +61,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   let size: Size = { width: 0, height: 0 };
   let dpr = 1;
   let obstacles: Rect[] = [];
-  let orbTop = 0;
+  let placement: OrbPlacement = { top: 0, horizon: 0, arc: null };
   let field: Field = buildField(buildGrid(size, obstacles, gridOptions()));
   let clouds: Cloud[] = [];
   let accents: Accents = createAccents(size, field, theme, mulberry32(seed));
@@ -81,7 +96,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   function layout() {
     const rng = mulberry32(seed);
     clouds = createClouds(size, field, theme, rng);
-    accents = createAccents(size, field, theme, rng, orbTop);
+    accents = createAccents(size, field, theme, rng, placement);
     settle();
   }
 
@@ -152,14 +167,33 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
       if (destroyed || sameRects(rects, obstacles)) return;
       obstacles = rects.map((r) => ({ ...r }));
       rebuildField();
-      updateAccentTargets(accents, field, size, theme, orbTop);
+      updateAccentTargets(accents, field, size, theme, placement);
       applyNow();
     },
 
     setOrbTop(top) {
-      if (destroyed || top === orbTop) return;
-      orbTop = top;
-      updateAccentTargets(accents, field, size, theme, orbTop);
+      if (destroyed || top === placement.top) return;
+      placement = { ...placement, top };
+      updateAccentTargets(accents, field, size, theme, placement);
+      applyNow();
+    },
+
+    setOrbBlockers(rects) {
+      if (destroyed) return;
+      placement = { ...placement, blockers: rects ? rects.map((r) => ({ ...r })) : null };
+      updateAccentTargets(accents, field, size, theme, placement);
+      applyNow();
+    },
+
+    setOrbArc(arc, horizon = 0) {
+      if (destroyed) return;
+      const same =
+        horizon === placement.horizon &&
+        (arc === placement.arc ||
+          (arc !== null && arc !== "below" && placement.arc !== null && placement.arc !== "below" && arc.progress === placement.arc.progress));
+      if (same) return;
+      placement = { ...placement, arc, horizon };
+      updateAccentTargets(accents, field, size, theme, placement);
       applyNow();
     },
 

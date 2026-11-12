@@ -1,17 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DeskcloudCanvas } from "@/features/deskcloud/components/DeskcloudCanvas";
-import { lerpPalette } from "@/features/deskcloud/engine/renderer";
-import { sky } from "@/features/deskcloud/themes/sky";
-import { dawn, golden, overcastDay, overcastNight, stormDay, stormNight } from "@/features/deskcloud/themes/skyTints";
-import { withCloudCover } from "@/features/deskcloud/themes/weather";
-import { weatherEffect } from "@/lib/sky-weather";
-import { useSkyWeather } from "@/lib/use-sky-weather";
-import { moonPhase, skyTime } from "@/lib/sky-clock";
-import { useNow } from "@/lib/use-now";
+import { useLiveSky } from "@/lib/use-live-sky";
 import type { Rect } from "@/features/deskcloud/engine/types";
-import { HERO_SKY_CLASS, HERO_SKY_FADE_CLASS, SKY_OBSTACLE_ATTR, SKY_OBSTACLES_EVENT } from "@/lib/hero-sky";
+import {
+  HERO_SKY_CLASS,
+  HERO_SKY_FADE_CLASS,
+  SKY_OBSTACLE_ATTR,
+  SKY_OBSTACLES_EVENT,
+  SKY_ORB_BLOCKER_ATTR,
+} from "@/lib/hero-sky";
 
 /** Space between the navbar and the top of the sun or moon, in px */
 const ORB_GAP = 16;
@@ -28,23 +27,10 @@ export function HeroSky() {
   const root = useRef<HTMLDivElement>(null);
   const [obstacles, setObstacles] = useState<readonly Rect[]>([]);
   const [orbTop, setOrbTop] = useState(0);
+  const [orbBlockers, setOrbBlockers] = useState<readonly Rect[]>([]);
 
-  // The real sky over Pampanga: dawn and golden-hour tints by day, the moon's phase by night,
-  // and the current weather (partly cloudy until it arrives, or if it can't be fetched)
-  const now = useNow(60_000);
-  const weather = useSkyWeather();
-  const effect = useMemo(() => weatherEffect(weather), [weather]);
-  const theme = useMemo(() => withCloudCover(sky, effect), [effect]);
-  const palettes = useMemo(() => {
-    if (now === null) return null;
-    const { dawn: d, golden: g } = skyTime(now);
-    const day = lerpPalette(lerpPalette(sky.palettes.day, dawn, d), golden, g);
-    return {
-      day: lerpPalette(lerpPalette(day, overcastDay, effect.grey), stormDay, effect.dark),
-      night: lerpPalette(lerpPalette(sky.palettes.night, overcastNight, effect.grey), stormNight, effect.dark),
-    };
-  }, [now, effect]);
-  const phase = now === null ? null : moonPhase(now);
+  // The real sky over Pampanga: colours, weather, moon phase, and where the sun or moon is
+  const live = useLiveSky();
 
   useEffect(() => {
     const el = root.current;
@@ -67,6 +53,8 @@ export function HeroSky() {
         };
       });
       setObstacles((prev) => (sameRects(prev, next) ? prev : next));
+      const blockers = next.filter((_, i) => nodes[i].hasAttribute(SKY_ORB_BLOCKER_ATTR));
+      setOrbBlockers((prev) => (sameRects(prev, blockers) ? prev : blockers));
       // The canvas runs up behind the navbar; the hero (and the open sky) starts where the section does
       setOrbTop(Math.round(section.getBoundingClientRect().top - origin.top) + ORB_GAP);
     };
@@ -97,10 +85,12 @@ export function HeroSky() {
       <DeskcloudCanvas
         obstacles={obstacles}
         orbTop={orbTop}
-        palettes={palettes}
-        moonPhase={phase}
-        theme={theme}
-        weather={effect}
+        palettes={live.palettes}
+        moonPhase={live.moonPhase}
+        theme={live.theme}
+        weather={live.weather}
+        orbArc={live.orbArc}
+        orbBlockers={orbBlockers}
         className="block h-full w-full"
       />
       <div className={HERO_SKY_FADE_CLASS} />

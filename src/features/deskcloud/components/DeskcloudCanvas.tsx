@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useTheme } from "next-themes";
+import type { OrbArc } from "../engine/accents";
 import { createEngine, type Engine, type Weather } from "../engine/engine";
 import type { Mode, Rect } from "../engine/types";
 import type { Palette, Theme } from "../themes/types";
@@ -26,6 +27,12 @@ type Props = {
   theme?: Theme;
   /** Rain, lightning, fog, wind and how much cloud hides the sun or moon */
   weather?: Weather;
+  /** Where the sun or moon is on its arc across the sky; leave out for the roomiest open sky */
+  orbArc?: OrbArc | null;
+  /** The horizon for that arc, in px up from the canvas bottom */
+  horizon?: number;
+  /** What the sun or moon fades out behind, relative to the canvas; leave out for every obstacle */
+  orbBlockers?: readonly Rect[] | null;
   className?: string;
 };
 
@@ -39,6 +46,9 @@ export function DeskcloudCanvas({
   moonPhase = null,
   theme = sky,
   weather = CLEAR,
+  orbArc = null,
+  horizon = 0,
+  orbBlockers = null,
   className = "",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -103,6 +113,14 @@ export function DeskcloudCanvas({
   useEffect(() => {
     engineRef.current?.setTheme(theme);
   }, [theme]);
+
+  useEffect(() => {
+    engineRef.current?.setOrbArc(orbArc, horizon);
+  }, [orbArc, horizon]);
+
+  useEffect(() => {
+    engineRef.current?.setOrbBlockers(orbBlockers);
+  }, [orbBlockers]);
 
   const { rain, sunHidden, lightning, fog, wind } = weather;
   useEffect(() => {

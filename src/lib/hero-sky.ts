@@ -4,6 +4,9 @@
 /** Elements with this attribute are boxes the clouds part around */
 export const SKY_OBSTACLE_ATTR = "data-sky-obstacle";
 
+/** Obstacles the sun or moon fades out behind (text with no background); it passes behind the rest */
+export const SKY_ORB_BLOCKER_ATTR = "data-sky-orb-blocker";
+
 /** Dispatched (bubbling) by an obstacle that moved without changing size, e.g. a dragged icon */
 export const SKY_OBSTACLES_EVENT = "herosky:obstacles";
 

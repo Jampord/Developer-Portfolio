@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
 import { en } from "../content/en";
 import { LazyDemoDesktop } from "./LazyDemoDesktop";
+import { LiveSkyLine } from "./LiveSkyLine";
 
 /**
  * Headline, subhead and CTAs are server-rendered (good for SEO and LCP). The live demo
@@ -43,6 +44,7 @@ export function DeskcloudHero() {
         <div className="overflow-hidden rounded-4xl border border-foreground/10 shadow-xl">
           <LazyDemoDesktop />
         </div>
+        <LiveSkyLine />
       </div>
     </section>
   );

@@ -1,7 +1,7 @@
 import type { Theme } from "../themes/types";
 import { between, intBetween, type CloudContext } from "./clouds";
 import type { Field } from "./field";
-import type { Size, Vec2 } from "./types";
+import type { Rect, Size, Vec2 } from "./types";
 
 /** The sun by day and the moon by night: one position, eased toward its target */
 export type Orb = {
@@ -13,7 +13,40 @@ export type Orb = {
   radius: number;
   /** 0–1: the orb fades out while even its best spot is too cramped (e.g. on a busy phone screen) */
   visibility: number;
+  /** Below the horizon (on an arc placement), so not drawn at all */
+  hidden: boolean;
+  /** Whether its target spot is clear of whatever hides it (see OrbPlacement.blockers) */
+  clear: boolean;
 };
+
+/** A point on the orb's arc: 0 rising on the left, 0.5 highest, 1 setting on the right; or below the horizon */
+export type OrbArc = { progress: number } | "below";
+
+/** Where the orb goes */
+export type OrbPlacement = {
+  /** Where the visible sky starts, in px from the canvas top (e.g. under a sticky header) */
+  top: number;
+  /** The horizon, in px up from the canvas bottom (e.g. above a taskbar) */
+  horizon: number;
+  /** null: the roomiest open sky. Otherwise a place on its arc across the sky, e.g. from the real time of day */
+  arc: OrbArc | null;
+  /**
+   * What the orb fades out behind. null: every obstacle (with its padding). A list: only these boxes, so
+   * it can pass behind solid things like icons and peek out around them.
+   */
+  blockers?: readonly Rect[] | null;
+};
+
+export const OPEN_SKY: OrbPlacement = { top: 0, horizon: 0, arc: null };
+
+/** True when a circle doesn't overlap any of the boxes */
+export function clearOf(rects: readonly Rect[], { x, y }: Vec2, radius: number): boolean {
+  return rects.every((r) => {
+    const dx = Math.max(r.x - x, 0, x - (r.x + r.width));
+    const dy = Math.max(r.y - y, 0, y - (r.y + r.height));
+    return dx * dx + dy * dy >= radius * radius;
+  });
+}
 
 export type Bird = {
   x: number;
@@ -84,6 +117,32 @@ export function findOrbSpot(field: Field, size: Size, radius: number, top = 0): 
   return best ?? fallback;
 }
 
+/**
+ * A point on the orb's arc: left to right with progress, rising from the horizon to just under the top
+ * of the sky at 0.5. At 0 and 1 its centre sits on the horizon, half set.
+ */
+export function arcPoint(size: Size, radius: number, progress: number, top: number, horizon: number): Vec2 {
+  const margin = radius * 1.6;
+  const p = clamp(progress, 0, 1);
+  const bottom = size.height - horizon;
+  const peak = Math.min(bottom, top + margin);
+  return {
+    x: margin + Math.max(0, size.width - 2 * margin) * p,
+    y: bottom - (bottom - peak) * Math.sin(Math.PI * p),
+  };
+}
+
+/** Where the orb should be, and whether it's below the horizon */
+function orbTarget(field: Field, size: Size, radius: number, placement: OrbPlacement) {
+  const { arc, top, horizon, blockers = null } = placement;
+  const spot =
+    arc === null ? findOrbSpot(field, size, radius, top) : arcPoint(size, radius, arc === "below" ? 1 : arc.progress, top, horizon);
+  const clear = blockers ? clearOf(blockers, spot, radius) : orbVisibility(field, spot.x, spot.y, radius) === 1;
+  return { spot, hidden: arc === "below", clear };
+}
+
+const shownAt = (orb: Orb) => (orb.hidden || !orb.clear ? 0 : 1);
+
 /** The orb grows with the sky: a share of the canvas's shorter side, within the theme's limits */
 export function orbRadius(size: Size, theme: Theme): number {
   const { size: share, minRadius, maxRadius } = theme.orb;
@@ -142,9 +201,15 @@ function updateStarVisibility(stars: Star[], field: Field) {
   for (const s of stars) s.visible = field.sample(s.x, s.y) > 0;
 }
 
-export function createAccents(size: Size, field: Field, theme: Theme, rng: () => number, orbTop = 0): Accents {
+export function createAccents(
+  size: Size,
+  field: Field,
+  theme: Theme,
+  rng: () => number,
+  placement: OrbPlacement = OPEN_SKY,
+): Accents {
   const radius = orbRadius(size, theme);
-  const spot = findOrbSpot(field, size, radius, orbTop);
+  const { spot, hidden, clear } = orbTarget(field, size, radius, placement);
   const count = intBetween(rng, theme.birds.count);
   const lanes = chooseLanes(field, size, count, rng);
 
@@ -158,18 +223,35 @@ export function createAccents(size: Size, field: Field, theme: Theme, rng: () =>
   }));
 
   return {
-    orb: { x: spot.x, y: spot.y, tx: spot.x, ty: spot.y, radius, visibility: orbVisibility(field, spot.x, spot.y, radius) },
+    orb: {
+      x: spot.x,
+      y: spot.y,
+      tx: spot.x,
+      ty: spot.y,
+      radius,
+      hidden,
+      clear,
+      visibility: hidden || !clear ? 0 : 1,
+    },
     birds,
     stars: createStars(size, field, theme, rng),
   };
 }
 
 /** After the icons move: new spots for the orb and bird lanes (eased in stepAccents), and which stars show */
-export function updateAccentTargets(accents: Accents, field: Field, size: Size, theme: Theme, orbTop = 0): void {
+export function updateAccentTargets(
+  accents: Accents,
+  field: Field,
+  size: Size,
+  theme: Theme,
+  placement: OrbPlacement = OPEN_SKY,
+): void {
   accents.orb.radius = orbRadius(size, theme);
-  const spot = findOrbSpot(field, size, accents.orb.radius, orbTop);
+  const { spot, hidden, clear } = orbTarget(field, size, accents.orb.radius, placement);
   accents.orb.tx = spot.x;
   accents.orb.ty = spot.y;
+  accents.orb.hidden = hidden;
+  accents.orb.clear = clear;
 
   // Fixed seed: lanes depend only on where the icons are
   const lanes = chooseLanes(field, size, accents.birds.length, () => 0.5);
@@ -184,7 +266,7 @@ export function stepAccents(accents: Accents, dt: number, { field, size, theme }
   const { orb } = accents;
   orb.x += (orb.tx - orb.x) * ease;
   orb.y += (orb.ty - orb.y) * ease;
-  const shown = orbVisibility(field, orb.tx, orb.ty, orb.radius);
+  const shown = shownAt(orb);
   orb.visibility += (shown - orb.visibility) * Math.min(1, dt * 4);
 
   const span = theme.birds.size * 2;
@@ -206,7 +288,7 @@ export function settleAccents(accents: Accents, field?: Field): void {
   const { orb } = accents;
   orb.x = orb.tx;
   orb.y = orb.ty;
-  if (field) orb.visibility = orbVisibility(field, orb.tx, orb.ty, orb.radius);
+  orb.visibility = shownAt(orb);
   for (const bird of accents.birds) {
     bird.y = bird.laneY;
     if (field) bird.visibility = clamp((field.sample(bird.x, bird.y) - 8) / 32, 0, 1);
