@@ -1,6 +1,6 @@
 "use client";
 
-import { createElement } from "react";
+import { createElement, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -52,6 +52,9 @@ function weatherIcon(weather: SkyWeather | null, night: boolean): LucideIcon {
       return night ? Moon : Sun;
   }
 }
+
+/** Set when the big button turns the sky on, so focus lands on the switch that replaced it */
+let focusSkySwitch = false;
 
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -107,17 +110,30 @@ export function SkyCaption() {
   const mode = useSkyMode();
   const pref = useHeroSky();
   const { sky } = site;
+  const onSwitch = useRef<HTMLButtonElement>(null);
 
-  // With the sky off, one short line keeps the way back
+  useEffect(() => {
+    if (pref !== "on" || !focusSkySwitch) return;
+    focusSkySwitch = false;
+    onSwitch.current?.focus({ preventScroll: true });
+  }, [pref]);
+
+  // With the sky off (the default), one button turns it on
   if (pref === "off") {
     return (
       <div data-hero-fade className="flex flex-col items-start gap-2">
-        <div className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl px-3 py-1.5 font-mono text-xs ${surface}`}>
-          <p className="text-muted">{sky.off}</p>
-          <button type="button" onClick={() => setHeroSky("on")} className={`${pill} text-primary`}>
-            {sky.turnOn}
-          </button>
-        </div>
+        <button
+          type="button"
+          title={sky.turnOnHint}
+          onClick={() => {
+            focusSkySwitch = true;
+            setHeroSky("on");
+          }}
+          className={`group inline-flex items-center gap-2 rounded-full py-2.5 pl-4 pr-5 text-sm font-medium transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${surface}`}
+        >
+          <Cloud aria-hidden="true" className="size-4 text-primary transition-transform group-hover:-translate-y-px" />
+          {sky.turnOn}
+        </button>
       </div>
     );
   }
@@ -146,6 +162,7 @@ export function SkyCaption() {
           {SKY.map((s) => (
             <button
               key={s}
+              ref={s === "on" ? onSwitch : undefined}
               type="button"
               aria-pressed={pref === s}
               onClick={() => setHeroSky(s)}
