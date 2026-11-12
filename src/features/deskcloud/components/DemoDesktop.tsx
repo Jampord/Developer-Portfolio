@@ -19,6 +19,7 @@ import {
   type SlotGrid,
 } from "../slots";
 import { DEMO_FRAME_CLASS, TASKBAR_CLASS, TASKBAR_HEIGHT } from "./demoFrame";
+import { useLiveSky } from "@/lib/use-live-sky";
 import { DeskcloudCanvas } from "./DeskcloudCanvas";
 import { DemoToolbar } from "./DemoToolbar";
 import { IconLayer, type Drag, type PlacedIcon } from "./IconLayer";
@@ -206,9 +207,20 @@ type ShellProps = {
  * first measurement.
  */
 function Shell({ desktopRef, obstacles, announcement, icons, toolbar }: ShellProps) {
+  // The real sky over Pampanga, with the sun and moon rising and setting above the taskbar
+  const live = useLiveSky();
   return (
     <div className={DEMO_FRAME_CLASS}>
-      <DeskcloudCanvas obstacles={obstacles} className="absolute inset-0 block h-full w-full" />
+      <DeskcloudCanvas
+        obstacles={obstacles}
+        palettes={live.palettes}
+        moonPhase={live.moonPhase}
+        theme={live.theme}
+        weather={live.weather}
+        orbArc={live.orbArc}
+        horizon={TASKBAR_HEIGHT}
+        className="absolute inset-0 block h-full w-full"
+      />
       <div
         ref={desktopRef}
         role="group"

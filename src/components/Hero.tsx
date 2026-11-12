@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
 import { ArrowDown, Download } from "lucide-react";
-import { SKY_OBSTACLE_ATTR } from "@/lib/hero-sky";
+import { SKY_OBSTACLE_ATTR, SKY_ORB_BLOCKER_ATTR } from "@/lib/hero-sky";
 import { site } from "@/lib/site";
 import { HeroIcons } from "./HeroIcons";
 import { LazyHeroSky } from "./LazyHeroSky";
@@ -17,6 +17,9 @@ const nameWords = nameLines.map((line) =>
 
 /** Marks an element as a box the sky's clouds part around */
 const skyObstacle = { [SKY_OBSTACLE_ATTR]: "" };
+
+/** Also hides the sun or moon: the name sits straight on the sky, so nothing should shine through its letters */
+const orbBlocker = { [SKY_ORB_BLOCKER_ATTR]: "" };
 
 // Text sits on the sky, so anything small gets a frosted surface to stay readable
 const surface = "border border-foreground/10 bg-card/90 backdrop-blur-md";
@@ -59,7 +62,7 @@ export function Hero() {
           >
             {nameWords.map((words, li) => (
               // Each line is its own obstacle, sized to its text
-              <span key={li} aria-hidden="true" className="block w-fit" {...skyObstacle}>
+              <span key={li} aria-hidden="true" className="block w-fit" {...skyObstacle} {...orbBlocker}>
                 {words.map((letters, wi) => (
                   <Fragment key={wi}>
                     <span className="mb-[-0.12em] inline-block overflow-hidden pb-[0.12em] align-bottom">

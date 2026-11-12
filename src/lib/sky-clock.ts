@@ -80,3 +80,34 @@ export function moonPhase(ms: number): number {
 export function placeTime(ms: number): string {
   return new Intl.DateTimeFormat("en-US", { timeZone: PLACE.timeZone, hour: "numeric", minute: "2-digit" }).format(ms);
 }
+
+/** How far across the sky a body is: 0 rising in the east (left), 0.5 highest, 1 setting in the west (right) */
+export type SkyArc = { progress: number } | "below";
+
+/** The sun's place on its arc between Pampanga sunrise and sunset, or "below" the horizon */
+export function sunArc(ms: number): SkyArc {
+  const { sunrise, sunset } = sunTimes(ms);
+  if (ms < sunrise || ms >= sunset) return "below";
+  return { progress: (ms - sunrise) / (sunset - sunrise) };
+}
+
+/** The moon is up for about half a day either side of crossing the sky's highest point */
+const MOON_HALF_SPAN = 6.2 * 3_600_000;
+
+/**
+ * The moon's place on its arc, or "below" the horizon. An approximation good to about an hour: the
+ * moon crosses the sky's highest point at solar noon plus its phase of a day (with the sun at new
+ * moon, at midnight when full), so it rises about 50 minutes later each day.
+ */
+export function moonArc(ms: number): SkyArc {
+  const day = 86_400_000;
+  const { sunrise, sunset } = sunTimes(ms);
+  const noon = (sunrise + sunset) / 2;
+  const offset = moonPhase(ms) * day;
+  for (const shift of [-day, 0, day]) {
+    const transit = noon + offset + shift;
+    const rise = transit - MOON_HALF_SPAN;
+    if (ms >= rise && ms < transit + MOON_HALF_SPAN) return { progress: (ms - rise) / (2 * MOON_HALF_SPAN) };
+  }
+  return "below";
+}

@@ -72,7 +72,7 @@ export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: S
   const sunShown = 1 - (scene.sunHidden ?? 0);
   drawHalo(ctx, accents, palette, (1 - night) * sunShown, theme);
   drawStars(ctx, accents, palette, night);
-  drawOrb(ctx, accents, palette, night, theme, scene.moonPhase ?? null, sunShown);
+  drawOrb(ctx, accents, palette, night, theme, scene.moonPhase ?? null, sunShown, height);
 
   const { backFade } = theme.clouds;
   const backPalette = {
@@ -127,6 +127,8 @@ function drawOrb(
   phase: number | null,
   /** 1 in a clear sky, lower when cloud hides it */
   clearness = 1,
+  /** Canvas height, to match the dark side of the moon to the sky behind it */
+  skyHeight = 0,
 ) {
   const shown = orb.visibility * clearness;
   if (shown < 0.01) return;
@@ -166,10 +168,20 @@ function drawOrb(
   }
 
   if (phase === null) return;
-  ctx.fillStyle = css(mixRgb(palette.skyTop, palette.orbDetail, 0.12), 0.92 * night * shown);
+  // The dark side takes the sky colour at the moon's height, with a trace of earthshine
+  const behind = skyColorAt(palette, skyHeight > 0 ? y / skyHeight : 0);
+  ctx.fillStyle = css(mixRgb(behind, palette.orbDetail, 0.1), 0.94 * night * shown);
   ctx.beginPath();
   moonShadow(ctx, x, y, radius, phase);
   ctx.fill();
+}
+
+/** The sky gradient's colour at a height, as a share of the canvas (0 top, 1 bottom) */
+function skyColorAt(palette: Palette, t: number): Rgb {
+  const k = Math.min(1, Math.max(0, t));
+  return k <= SKY_MID
+    ? mixRgb(palette.skyTop, palette.skyBottom, k / SKY_MID)
+    : mixRgb(palette.skyBottom, palette.skyHaze, (k - SKY_MID) / (1 - SKY_MID));
 }
 
 /**

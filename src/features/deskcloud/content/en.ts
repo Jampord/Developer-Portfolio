@@ -49,7 +49,7 @@ export const en = {
     items: [
       {
         title: "Knows your icons",
-        body: "It only needs to know where your icons sit, never what's in them. This demo runs entirely in your browser.",
+        body: "It only needs to know where your icons sit, never what's in them. Apart from fetching the weather, this demo runs entirely in your browser.",
       },
       {
         title: "Reshapes as you go",
@@ -60,8 +60,8 @@ export const en = {
         body: "The sky redraws 30 times a second at most, and stops completely whenever you can't see it.",
       },
       {
-        title: "Day and night",
-        body: "It follows your light or dark theme: blue skies and birds by day, a moon and stars by night.",
+        title: "The real sky",
+        body: "Sunrise and sunset, golden hour, the moon's phase and the weather where you are, with the sun and moon where they really are. The demo shows the sky over San Fernando, Pampanga.",
       },
     ],
   },
@@ -78,7 +78,7 @@ export const en = {
       {
         question: "Does it read my files?",
         answer:
-          "No. It would only need to know where your icons are on screen, never what's inside them. This demo doesn't send anything anywhere.",
+          "No. It would only need to know where your icons are on screen, never what's inside them. For live weather it would also need a town or city you type in, never your exact location. This demo doesn't send anything anywhere: it shows the sky over San Fernando, Pampanga.",
       },
       {
         question: "Will it slow my computer down?",
@@ -138,6 +138,9 @@ export const en = {
 
   demo: {
     desktopLabel: "Demo desktop",
+    /** Under the demo: whose sky it is, e.g. "Live sky over San Fernando, Pampanga · 9:14 PM · light rain, 29°C" */
+    liveSky: (time: string, weather: string | null) =>
+      `Live sky over San Fernando, Pampanga · ${time}${weather ? ` · ${weather}` : ""}`,
     icons: {
       resume: "resume.pdf",
       github: "GitHub",

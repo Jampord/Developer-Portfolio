@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moonPhase, placeTime, skyTime, sunTimes } from "../sky-clock";
+import { moonArc, moonPhase, placeTime, skyTime, sunArc, sunTimes } from "../sky-clock";
 
 /** A Philippine local time (UTC+8) as UTC ms */
 const ph = (y: number, mo: number, d: number, h: number, mi = 0) => Date.UTC(y, mo - 1, d, h - 8, mi);
@@ -67,5 +67,47 @@ describe("moonPhase", () => {
 describe("placeTime", () => {
   it("formats the time in Philippine time", () => {
     expect(placeTime(ph(2026, 11, 12, 21, 14))).toBe("9:14 PM");
+  });
+});
+
+describe("sunArc", () => {
+  const { sunrise, sunset } = sunTimes(ph(2026, 9, 1, 12));
+
+  it("rises on the left, peaks halfway through the day, and sets on the right", () => {
+    expect(sunArc(sunrise + MIN)).toEqual({ progress: expect.closeTo(0, 2) });
+    expect(sunArc((sunrise + sunset) / 2)).toEqual({ progress: expect.closeTo(0.5, 5) });
+    expect(sunArc(sunset - MIN)).toEqual({ progress: expect.closeTo(1, 2) });
+  });
+
+  it("is below the horizon at night", () => {
+    expect(sunArc(sunset + MIN)).toBe("below");
+    expect(sunArc(sunrise - MIN)).toBe("below");
+  });
+});
+
+describe("moonArc", () => {
+  const HOUR = 60 * MIN;
+  // A known full moon (2024-04-23 23:49 UTC, 07:49 on the 24th in the Philippines)
+  const fullMoonDay = ph(2024, 4, 24, 12);
+  // A known new moon (2024-05-08 03:22 UTC)
+  const newMoonDay = ph(2024, 5, 8, 12);
+
+  it("puts a full moon high around midnight, and below the horizon at noon", () => {
+    const night = moonArc(ph(2024, 4, 24, 0, 30));
+    expect(night).not.toBe("below");
+    if (night !== "below") expect(Math.abs(night.progress - 0.5)).toBeLessThan(0.15);
+    expect(moonArc(fullMoonDay)).toBe("below");
+  });
+
+  it("keeps a new moon up with the sun, so it's below the horizon at midnight", () => {
+    expect(moonArc(ph(2024, 5, 8, 0))).toBe("below");
+    expect(moonArc(newMoonDay)).not.toBe("below");
+  });
+
+  it("is up for about half a day", () => {
+    let up = 0;
+    for (let t = fullMoonDay; t < fullMoonDay + 24 * HOUR; t += 10 * MIN) if (moonArc(t) !== "below") up++;
+    expect(up * 10).toBeGreaterThan(11 * 60);
+    expect(up * 10).toBeLessThan(13.5 * 60);
   });
 });

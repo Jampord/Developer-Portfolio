@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sky } from "../../themes/sky";
-import { createAccents, findOrbSpot, orbRadius, settleAccents, stepAccents, updateAccentTargets } from "../accents";
+import { arcPoint, createAccents, findOrbSpot, orbRadius, settleAccents, stepAccents, updateAccentTargets } from "../accents";
 import { buildField } from "../field";
 import { buildGrid } from "../grid";
 import { mulberry32 } from "../random";
@@ -41,6 +41,54 @@ describe("findOrbSpot (sun by day, moon by night)", () => {
       expect(spot.y - radius).toBeGreaterThanOrEqual(top);
       expect(spot.y).toBeLessThanOrEqual(top + (size.height - top) / 3);
     }
+  });
+});
+
+describe("arcPoint (sun and moon by time of day)", () => {
+  const top = 100;
+  const horizon = 50;
+
+  it("rises on the left at the horizon, peaks in the middle near the top, and sets on the right", () => {
+    const rise = arcPoint(size, radius, 0, top, horizon);
+    const noon = arcPoint(size, radius, 0.5, top, horizon);
+    const set = arcPoint(size, radius, 1, top, horizon);
+    expect(rise.y).toBeCloseTo(size.height - horizon);
+    expect(set.y).toBeCloseTo(size.height - horizon);
+    expect(rise.x).toBeLessThan(noon.x);
+    expect(noon.x).toBeLessThan(set.x);
+    expect(noon.x).toBeCloseTo(size.width / 2);
+    expect(noon.y).toBeCloseTo(top + radius * 1.6);
+  });
+
+  it("is hidden below the horizon, and fades out behind an icon instead of moving aside", () => {
+    const open = fieldFor([]);
+    const below = createAccents(size, open, sky, mulberry32(1), { top, horizon, arc: "below" });
+    expect(below.orb.hidden).toBe(true);
+    expect(below.orb.visibility).toBe(0);
+
+    const noon = arcPoint(size, radius, 0.5, top, horizon);
+    const covered = fieldFor([{ x: noon.x - 40, y: noon.y - 40, width: 80, height: 80 }]);
+    const behind = createAccents(size, covered, sky, mulberry32(1), { top, horizon, arc: { progress: 0.5 } });
+    expect(behind.orb.tx).toBeCloseTo(noon.x);
+    expect(behind.orb.ty).toBeCloseTo(noon.y);
+    expect(behind.orb.visibility).toBe(0);
+
+    updateAccentTargets(behind, open, size, sky, { top, horizon, arc: { progress: 0.5 } });
+    settleAccents(behind, open);
+    expect(behind.orb.visibility).toBe(1);
+  });
+
+  it("with blockers, passes behind other obstacles and fades only behind the blockers", () => {
+    const noon = arcPoint(size, radius, 0.5, top, horizon);
+    const icon = { x: noon.x - 40, y: noon.y - 40, width: 80, height: 80 };
+    const field = fieldFor([icon]);
+    const arc = { progress: 0.5 };
+
+    const pastIcon = createAccents(size, field, sky, mulberry32(1), { top, horizon, arc, blockers: [] });
+    expect(pastIcon.orb.visibility).toBe(1);
+
+    const behindName = createAccents(size, field, sky, mulberry32(1), { top, horizon, arc, blockers: [icon] });
+    expect(behindName.orb.visibility).toBe(0);
   });
 });
 
