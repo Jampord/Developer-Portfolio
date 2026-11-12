@@ -31,6 +31,17 @@ describe("findOrbSpot (sun by day, moon by night)", () => {
     expect(spot.y).toBeLessThanOrEqual(size.height / 3);
     expect(field.sample(spot.x, spot.y)).toBeGreaterThan(radius * 2);
   });
+
+  it("stays below the top line it's given, in the top third of the sky under it", () => {
+    const top = 120;
+    // An icon at the top-left makes the top-right corner the roomiest spot, right under the line
+    const icons = [{ x: 30, y: 200, width: 72, height: 80 }];
+    for (const field of [fieldFor([]), fieldFor(icons)]) {
+      const spot = findOrbSpot(field, size, radius, top);
+      expect(spot.y - radius).toBeGreaterThanOrEqual(top);
+      expect(spot.y).toBeLessThanOrEqual(top + (size.height - top) / 3);
+    }
+  });
 });
 
 describe("accents", () => {
@@ -52,6 +63,20 @@ describe("accents", () => {
     settleAccents(accents);
     expect(accents.orb.x).toBe(accents.orb.tx);
     expect(accents.orb.y).toBe(accents.orb.ty);
+  });
+
+  it("hides the orb when even its best spot is too cramped, and shows it again once there is room", () => {
+    // Icons tiled across the whole top half of the sky
+    const icons: Rect[] = [];
+    for (let y = 0; y < size.height / 2; y += 90) for (let x = 0; x < size.width; x += 80) icons.push({ x, y, width: 72, height: 80 });
+    const crowded = fieldFor(icons);
+    const accents = createAccents(size, crowded, sky, mulberry32(1));
+    expect(accents.orb.visibility).toBe(0);
+
+    const open = fieldFor([]);
+    updateAccentTargets(accents, open, size, sky);
+    settleAccents(accents, open, sky);
+    expect(accents.orb.visibility).toBe(1);
   });
 
   it("gives the day sky 2–3 birds", () => {

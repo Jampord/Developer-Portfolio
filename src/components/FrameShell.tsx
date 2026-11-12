@@ -41,7 +41,8 @@ export function FrameShell({ children }: { children: React.ReactNode }) {
       <div
         ref={inner}
         style={{ borderRadius: "2rem" }}
-        className="min-h-[calc(100vh-1.5rem)] bg-background md:min-h-[calc(100vh-3rem)]"
+        // overflow-clip (not hidden) rounds off the hero's sky without breaking position: sticky inside
+        className="min-h-[calc(100vh-1.5rem)] overflow-clip bg-background md:min-h-[calc(100vh-3rem)]"
       >
         {children}
       </div>

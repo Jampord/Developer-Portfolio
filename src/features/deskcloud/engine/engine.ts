@@ -11,6 +11,8 @@ export type Engine = {
   /** Canvas size in CSS px; dpr should already be capped (at 2) */
   setSize(width: number, height: number, dpr: number): void;
   setObstacles(rects: readonly Rect[]): void;
+  /** Keep the sun and moon below this line, in CSS px from the canvas top (e.g. under a sticky header) */
+  setOrbTop(top: number): void;
   /** Cross-fades the palette (instant with reduced motion or while stopped) */
   setMode(mode: Mode): void;
   /** On: stop the loop and draw a settled scene once per change */
@@ -29,6 +31,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
   let size: Size = { width: 0, height: 0 };
   let dpr = 1;
   let obstacles: Rect[] = [];
+  let orbTop = 0;
   let field: Field = buildField(buildGrid(size, obstacles, gridOptions()));
   let clouds: Cloud[] = [];
   let accents: Accents = createAccents(size, field, theme, mulberry32(seed));
@@ -58,13 +61,13 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
   function layout() {
     const rng = mulberry32(seed);
     clouds = createClouds(size, field, theme, rng);
-    accents = createAccents(size, field, theme, rng);
+    accents = createAccents(size, field, theme, rng, orbTop);
     settle();
   }
 
   function settle() {
     settleClouds(clouds, SETTLE_STEPS, context());
-    settleAccents(accents, field);
+    settleAccents(accents, field, theme);
   }
 
   function draw() {
@@ -120,7 +123,14 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
       if (destroyed || sameRects(rects, obstacles)) return;
       obstacles = rects.map((r) => ({ ...r }));
       rebuildField();
-      updateAccentTargets(accents, field, size, theme);
+      updateAccentTargets(accents, field, size, theme, orbTop);
+      applyNow();
+    },
+
+    setOrbTop(top) {
+      if (destroyed || top === orbTop) return;
+      orbTop = top;
+      updateAccentTargets(accents, field, size, theme, orbTop);
       applyNow();
     },
 

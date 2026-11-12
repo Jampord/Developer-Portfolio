@@ -15,11 +15,13 @@ const currentMode = (): Mode => (document.documentElement.classList.contains("da
 type Props = {
   /** Icon bounds relative to the canvas, in CSS px */
   obstacles: readonly Rect[];
+  /** Where the visible sky starts, in CSS px from the canvas top; the sun and moon stay below it */
+  orbTop?: number;
   className?: string;
 };
 
 /** Owns the <canvas> and the engine instance; purely decorative, all interaction lives on the HTML above it */
-export function DeskcloudCanvas({ obstacles, className = "" }: Props) {
+export function DeskcloudCanvas({ obstacles, orbTop = 0, className = "" }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<Engine | null>(null);
   const { resolvedTheme } = useTheme();
@@ -66,6 +68,10 @@ export function DeskcloudCanvas({ obstacles, className = "" }: Props) {
   useEffect(() => {
     engineRef.current?.setObstacles(obstacles);
   }, [obstacles]);
+
+  useEffect(() => {
+    engineRef.current?.setOrbTop(orbTop);
+  }, [orbTop]);
 
   // Follow the site's light/dark toggle (and the command palette's theme action) with a cross-fade
   useEffect(() => {
