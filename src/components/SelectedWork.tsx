@@ -15,9 +15,18 @@ import { Reveal } from "./Reveal";
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 // Keep in sync with the media query in globals.css
-const STACK_QUERY = "(min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)";
-const STICKY_BASE = 96; // 6rem, in px
-const STICKY_STEP = 16; // 1rem, in px
+const DECK_QUERY = "(min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+// How a card sits when it is `depth` cards down the deck: each one peeks out above the card in
+// front of it, a touch smaller and slightly askew, like a deck that was squared up by hand
+const pose = (depth: number) => ({
+  xPercent: 0,
+  y: -14 * depth,
+  scale: 1 - 0.035 * depth,
+  rotation: depth === 0 ? 0 : depth % 2 ? -1.2 : 1,
+});
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   const { cover } = splitCover(project.images);
@@ -26,9 +35,8 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
   return (
     <article
-      data-stack-inner
       data-cursor="View"
-      className="group relative origin-top overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 transition-colors hover:border-primary/50 md:p-6"
+      className="group relative h-full overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 transition-colors hover:border-primary/50 md:p-6"
     >
       {cover.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-foreground/10">
@@ -37,7 +45,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             <PhoneScreens
               images={cover}
               sizes="(min-width: 1152px) 300px, (min-width: 640px) 28vw, 40vw"
-              className="aspect-video px-4 pt-4 transition-transform duration-500 group-hover:scale-[1.02] sm:px-8 sm:pt-6 lg:aspect-auto lg:h-[40vh]"
+              className="work-cover aspect-video px-4 pt-4 transition-transform duration-500 group-hover:scale-[1.02] sm:px-8 sm:pt-6 lg:aspect-auto lg:h-[40vh]"
               phoneClassName="w-[40%] max-w-[300px] sm:w-[28%]"
             />
           ) : (
@@ -48,14 +56,14 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               height={cover[0].height}
               sizes="(min-width: 1152px) 1100px, 100vw"
               quality={SCREENSHOT_QUALITY}
-              className="aspect-video w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
+              className="work-cover aspect-video w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
             />
           )}
         </div>
       )}
 
       <div className="mt-6 grid gap-4 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-8">
-        <p className="font-mono text-sm text-primary">{String(index + 1).padStart(2, "0")}</p>
+        <p className="font-mono text-sm text-primary">{pad(index + 1)}</p>
         <div className="space-y-3">
           <h3 className="font-display text-3xl font-bold md:text-4xl">
             <Link
@@ -81,65 +89,78 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           <ArrowUpRight className="size-5" />
         </span>
       </div>
-
-      {/* Dimmed as the next card covers this one */}
-      <div
-        data-stack-shade
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-background opacity-0"
-      />
     </article>
   );
 }
 
 export function SelectedWork() {
   const root = useRef<HTMLElement>(null);
+  const total = featuredProjects.length;
 
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
 
-      mm.add(STACK_QUERY, () => {
-        const items = gsap.utils.toArray<HTMLElement>("[data-stack-item]");
+      mm.add(DECK_QUERY, () => {
+        const section = root.current;
+        const run = section?.querySelector<HTMLElement>("[data-work-run]");
+        const deck = section?.querySelector<HTMLElement>("[data-work-deck]");
+        const bar = section?.querySelector<HTMLElement>("[data-work-bar]");
+        const count = section?.querySelector<HTMLElement>("[data-work-count]");
+        if (!run || !deck) return;
 
-        // Each card scales back and dims as the next one covers it
-        items.forEach((item, i) => {
-          const next = items[i + 1];
-          if (!next) return; // the last card has nothing covering it
+        const cards = gsap.utils.toArray<HTMLElement>("[data-work-item]", deck);
+        const n = cards.length;
+        if (n < 2) return;
 
-          const inner = item.querySelector("[data-stack-inner]");
-          const shade = item.querySelector("[data-stack-shade]");
+        // The deck as dealt: first project on top
+        cards.forEach((card, j) => gsap.set(card, { ...pose(j), zIndex: n - j, transformOrigin: "50% 0%" }));
 
-          gsap
-            .timeline({
-              scrollTrigger: {
-                trigger: next,
-                start: "top bottom",
-                end: `top ${STICKY_BASE + (i + 1) * STICKY_STEP}px`,
-                scrub: true,
-              },
-            })
-            .to(inner, { scale: 0.94, ease: "none" }, 0)
-            .to(shade, { opacity: 0.55, ease: "none" }, 0);
+        // One shuffle per step of scroll: the top card is drawn off to the side and slipped in at
+        // the back, while the rest of the deck moves up one place. Only that one card travels.
+        const shuffle = gsap.timeline({
+          defaults: { ease: "power2.inOut" },
+          scrollTrigger: {
+            trigger: run,
+            start: "top top",
+            end: "bottom bottom",
+            scrub: true,
+            onUpdate: (self) => {
+              if (bar) gsap.set(bar, { scaleX: self.progress });
+              if (count) count.textContent = pad(Math.round(self.progress * (n - 1)) + 1);
+            },
+          },
         });
 
-        // Heading fades as the first card covers it
-        const header = root.current?.querySelector("[data-stack-header]");
-        if (header && items[0]) {
-          gsap.to(header, {
-            opacity: 0,
-            y: 0,
-            scale: 0.97,
-            ease: "none",
-            scrollTrigger: {
-              trigger: items[0],
-              start: "top 25%",
-              end: `top ${STICKY_BASE}px`,
-              scrub: true,
-            },
+        for (let s = 0; s < n - 1; s++) {
+          const top = cards[s];
+
+          shuffle
+            .to(top, { xPercent: 104, y: -8, rotation: 5, duration: 0.5 }, s)
+            // It has cleared the deck, so it can go behind without cutting through anything
+            .set(top, { zIndex: -s }, s + 0.5)
+            .to(top, { ...pose(n - 1), duration: 0.5 }, s + 0.5);
+
+          cards.forEach((card, j) => {
+            if (j === s) return;
+            const depth = (j - s + n) % n;
+            shuffle.to(card, { ...pose(depth - 1), duration: 0.6 }, s + 0.3);
           });
         }
-        // After the last card, the finished stack simply scrolls away with the list
+
+        // Tabbing to a card that is buried in the deck scrolls to the point where it is on top
+        const onFocus = (e: FocusEvent) => {
+          const card = (e.target as HTMLElement).closest<HTMLElement>("[data-work-item]");
+          const st = shuffle.scrollTrigger;
+          const j = card ? cards.indexOf(card) : -1;
+          if (j < 0 || !st) return;
+
+          const top = st.start + (j / (n - 1)) * (st.end - st.start);
+          if (Math.abs(window.scrollY - top) > 4) window.scrollTo({ top });
+        };
+        deck.addEventListener("focusin", onFocus);
+
+        return () => deck.removeEventListener("focusin", onFocus);
       });
 
       return () => mm.revert();
@@ -149,20 +170,37 @@ export function SelectedWork() {
 
   return (
     <section ref={root} id="work" className="scroll-mt-28 border-t border-foreground/10 py-24">
-      <Reveal className="stack-header">
-        <div data-stack-header>
-          <p className="font-mono text-sm text-primary">{"//"} 01 – work</p>
-          <h2 className="font-display text-4xl font-bold md:text-6xl">Selected Work</h2>
-        </div>
-      </Reveal>
+      <div data-work-run className="work-run" style={{ "--work-steps": total - 1 } as React.CSSProperties}>
+        <div className="work-pin">
+          <div>
+            <Reveal>
+              <p className="font-mono text-sm text-primary">{"//"} 01 – work</p>
+              <h2 className="font-display text-4xl font-bold md:text-6xl">Selected Work</h2>
+            </Reveal>
 
-      <ul className="stack-list mt-12 grid gap-8">
-        {featuredProjects.map((p, i) => (
-          <li key={p.slug} data-stack-item className="stack-card" style={{ "--stack-i": i } as React.CSSProperties}>
-            <ProjectCard project={p} index={i} />
-          </li>
-        ))}
-      </ul>
+            {/* Which card is on top; only shown where the cards are a deck */}
+            <div aria-hidden="true" className="work-progress">
+              <p className="font-mono text-sm text-muted">
+                <span data-work-count className="text-primary">
+                  {pad(1)}
+                </span>{" "}
+                / {pad(total)}
+              </p>
+              <div className="h-px flex-1 bg-foreground/15">
+                <div data-work-bar className="h-px origin-left scale-x-0 bg-primary" />
+              </div>
+            </div>
+          </div>
+
+          <ul data-work-deck className="work-list mt-12 grid gap-8">
+            {featuredProjects.map((p, i) => (
+              <li key={p.slug} data-work-item className="work-item">
+                <ProjectCard project={p} index={i} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       {otherProjects.length > 0 && (
         <Reveal className="mt-16">

@@ -108,21 +108,49 @@
   }
 }
 
-/* Stacking project cards: only on large, tall screens that allow motion.
-   Keep this query identical to STACK_QUERY in SelectedWork.tsx */
+/* Selected work: on small screens (or with reduced motion) it is a plain vertical list */
+.work-progress {
+  display: none;
+}
+
+/* On large, tall screens that allow motion the cards are a deck that shuffles as you scroll:
+   the panel stays put and SelectedWork.tsx moves one card at a time.
+   Keep this query identical to DECK_QUERY in SelectedWork.tsx */
 @media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
-  .stack-list {
-    gap: 12vh;
+  .work-run {
+    /* One screen to look at the deck, plus a stretch of scroll for each shuffle */
+    height: calc(100vh + var(--work-steps, 3) * 70vh);
   }
-  .stack-header {
+  .work-pin {
     position: sticky;
-    top: 6rem;
-    z-index: 0;
+    top: 0;
+    display: grid;
+    height: 100vh;
+    grid-template-columns: 19rem minmax(0, 1fr);
+    align-items: center;
+    gap: 3rem;
+    padding-top: 5.5rem; /* clears the nav */
+    padding-bottom: 1rem;
   }
-  .stack-card {
-    position: sticky;
-    top: calc(6rem + var(--stack-i, 0) * 1rem);
-    z-index: 1;
+  .work-list {
+    margin-top: 0;
+    gap: 0;
+    isolation: isolate; /* cards slipped to the back stay above the page background */
+    padding-top: 3rem; /* room for the cards peeking out above the top one */
+  }
+  .work-item {
+    grid-area: 1 / 1;
+    will-change: transform;
+  }
+  /* On short screens the screenshot gives up height so the whole card stays in view */
+  .work-cover {
+    height: min(40vh, calc(100vh - 31rem));
+  }
+  .work-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
   }
 }
 
