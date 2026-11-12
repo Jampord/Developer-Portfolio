@@ -17,9 +17,16 @@ export const site = {
     caption: "Drawn by Deskcloud, a canvas engine I wrote by hand. 30fps, no libraries.",
     href: "/lab/deskcloud",
     place: "San Fernando, Pampanga",
-    /** e.g. "Live sky over San Fernando, Pampanga · 9:14 PM · light rain, 29°C" */
-    live: (place: string, time: string, weather: string | null) =>
-      `Live sky over ${place} · ${time}${weather ? ` · ${weather}` : ""}`,
+    /** The weather card: "29°", "Light rain · Wind 12 km/h", "San Fernando, Pampanga · 9:14 PM · Live" */
+    weather: {
+      label: (place: string) => `Live weather over ${place}`,
+      temperature: (celsius: number) => `${celsius}°`,
+      temperatureLabel: (celsius: number) => `${celsius} degrees Celsius`,
+      wind: (kmh: number) => `Wind ${kmh} km/h`,
+      /** Before the weather arrives, or if it can't be fetched */
+      unknown: "Live sky",
+      live: "Live",
+    },
     switchLabel: "Day and night follow",
     skyLabel: "Sky",
     sky: { on: "On", off: "Off" },
