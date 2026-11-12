@@ -5,6 +5,7 @@ import { buildGrid } from "./grid";
 import { createLoop } from "./loop";
 import { mulberry32 } from "./random";
 import { lerpPalette, renderScene } from "./renderer";
+import type { Palette } from "../themes/types";
 import type { Cloud, EngineOptions, Mode, Rect, Size } from "./types";
 
 export type Engine = {
@@ -15,6 +16,10 @@ export type Engine = {
   setOrbTop(top: number): void;
   /** Cross-fades the palette (instant with reduced motion or while stopped) */
   setMode(mode: Mode): void;
+  /** Replace the theme's day and night palettes (e.g. tinted for the time of day); null restores them */
+  setPalettes(palettes: { day: Palette; night: Palette } | null): void;
+  /** The moon's phase, 0–1 (0 new, 0.5 full); null draws a full moon */
+  setMoonPhase(phase: number | null): void;
   /** On: stop the loop and draw a settled scene once per change */
   setReducedMotion(on: boolean): void;
   pause(): void;
@@ -39,6 +44,8 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
   // Start in the right mode so the first paint never flashes the other sky
   let modeTarget = mode === "night" ? 1 : 0;
   let modeT = modeTarget;
+  let palettes = theme.palettes;
+  let moonPhase: number | null = null;
   let reducedMotion = false;
   let paused = false;
   let destroyed = false;
@@ -72,9 +79,9 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
 
   function draw() {
     if (!ctx || destroyed || size.width <= 0 || size.height <= 0) return;
-    const { day, night } = theme.palettes;
+    const { day, night } = palettes;
     const t = modeT * modeT * (3 - 2 * modeT); // smoothstep
-    renderScene(ctx, dpr, { size, palette: lerpPalette(day, night, t), night: t, clouds, accents, theme });
+    renderScene(ctx, dpr, { size, palette: lerpPalette(day, night, t), night: t, clouds, accents, theme, moonPhase });
   }
 
   function frame(dt: number) {
@@ -132,6 +139,18 @@ export function createEngine(canvas: HTMLCanvasElement, { theme, seed = 1, mode 
       orbTop = top;
       updateAccentTargets(accents, field, size, theme, orbTop);
       applyNow();
+    },
+
+    setPalettes(next) {
+      if (destroyed) return;
+      palettes = next ?? theme.palettes;
+      if (!loop.running) draw();
+    },
+
+    setMoonPhase(phase) {
+      if (destroyed) return;
+      moonPhase = phase;
+      if (!loop.running) draw();
     },
 
     setMode(mode) {

@@ -12,6 +12,8 @@ export type Scene = {
   clouds: Cloud[];
   accents: Accents;
   theme: Theme;
+  /** The moon's phase, 0–1 (0 new, 0.5 full); null or missing draws a full moon */
+  moonPhase?: number | null;
 };
 
 const TAU = Math.PI * 2;
@@ -57,7 +59,7 @@ export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: S
 
   drawHalo(ctx, accents, palette, 1 - night, theme);
   drawStars(ctx, accents, palette, night);
-  drawOrb(ctx, accents, palette, night, theme);
+  drawOrb(ctx, accents, palette, night, theme, scene.moonPhase ?? null);
 
   const { backFade } = theme.clouds;
   const backPalette = {
@@ -97,15 +99,25 @@ function drawStars(ctx: CanvasRenderingContext2D, { stars }: Accents, palette: P
 }
 
 /** The sun, or the moon with its craters fading in: a soft glow, then a shaded disc */
-function drawOrb(ctx: CanvasRenderingContext2D, { orb }: Accents, palette: Palette, night: number, theme: Theme) {
+function drawOrb(
+  ctx: CanvasRenderingContext2D,
+  { orb }: Accents,
+  palette: Palette,
+  night: number,
+  theme: Theme,
+  phase: number | null,
+) {
   const shown = orb.visibility;
   if (shown < 0.01) return;
   const { x, y, radius } = orb;
   const { glowScale, glowAlpha } = theme.orb;
+  // Share of the moon that's lit: a thin crescent glows far less than a full moon
+  const lit = phase === null ? 1 : (1 - Math.cos(phase * TAU)) / 2;
+  const glowStrength = 1 - night * (1 - lit) * 0.75;
 
   const glowRadius = radius * glowScale;
   const glow = ctx.createRadialGradient(x, y, radius * 0.9, x, y, glowRadius);
-  glow.addColorStop(0, css(palette.orbGlow, glowAlpha * shown));
+  glow.addColorStop(0, css(palette.orbGlow, glowAlpha * shown * glowStrength));
   glow.addColorStop(1, css(palette.orbGlow, 0));
   ctx.fillStyle = glow;
   ctx.fillRect(x - glowRadius, y - glowRadius, glowRadius * 2, glowRadius * 2);
@@ -131,6 +143,31 @@ function drawOrb(ctx: CanvasRenderingContext2D, { orb }: Accents, palette: Palet
     ctx.fillStyle = crater;
     ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
   }
+
+  if (phase === null) return;
+  ctx.fillStyle = css(mixRgb(palette.skyTop, palette.orbDetail, 0.12), 0.92 * night * shown);
+  ctx.beginPath();
+  moonShadow(ctx, x, y, radius, phase);
+  ctx.fill();
+}
+
+/**
+ * The unlit part of the moon. One edge is the limb (a half circle on the dark side), the other the
+ * terminator: a half ellipse whose width shrinks to nothing at the quarters. As seen from the
+ * northern hemisphere, a waxing moon is lit on the right.
+ */
+function moonShadow(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, phase: number) {
+  const waxing = phase < 0.5;
+  const crescent = Math.cos(phase * TAU) > 0; // less than half lit
+  const rx = r * Math.abs(Math.cos(phase * TAU));
+  const top = -Math.PI / 2;
+  const bottom = Math.PI / 2;
+  // Limb: top to bottom round the dark side
+  ctx.arc(x, y, r, top, bottom, waxing);
+  // Terminator: bottom back to top, bulging into the lit side for a crescent, into the dark side for a gibbous moon
+  const throughRight = waxing === crescent;
+  ctx.ellipse(x, y, rx, r, 0, bottom, throughRight ? top : top + TAU, throughRight);
+  ctx.closePath();
 }
 
 // --- Clouds -------------------------------------------------------------------------------

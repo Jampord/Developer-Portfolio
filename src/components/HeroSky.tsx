@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DeskcloudCanvas } from "@/features/deskcloud/components/DeskcloudCanvas";
+import { lerpPalette } from "@/features/deskcloud/engine/renderer";
+import { sky } from "@/features/deskcloud/themes/sky";
+import { dawn, golden } from "@/features/deskcloud/themes/skyTints";
+import { moonPhase, skyTime } from "@/lib/sky-clock";
+import { useNow } from "@/lib/use-now";
 import type { Rect } from "@/features/deskcloud/engine/types";
 import { HERO_SKY_CLASS, HERO_SKY_FADE_CLASS, SKY_OBSTACLE_ATTR, SKY_OBSTACLES_EVENT } from "@/lib/hero-sky";
 
@@ -20,6 +25,15 @@ export function HeroSky() {
   const root = useRef<HTMLDivElement>(null);
   const [obstacles, setObstacles] = useState<readonly Rect[]>([]);
   const [orbTop, setOrbTop] = useState(0);
+
+  // The real sky over Pampanga: dawn and golden-hour tints by day, the moon's phase by night
+  const now = useNow(60_000);
+  const palettes = useMemo(() => {
+    if (now === null) return null;
+    const { dawn: d, golden: g } = skyTime(now);
+    return { day: lerpPalette(lerpPalette(sky.palettes.day, dawn, d), golden, g), night: sky.palettes.night };
+  }, [now]);
+  const phase = now === null ? null : moonPhase(now);
 
   useEffect(() => {
     const el = root.current;
@@ -69,7 +83,13 @@ export function HeroSky() {
 
   return (
     <div ref={root} aria-hidden="true" className={HERO_SKY_CLASS}>
-      <DeskcloudCanvas obstacles={obstacles} orbTop={orbTop} className="block h-full w-full" />
+      <DeskcloudCanvas
+        obstacles={obstacles}
+        orbTop={orbTop}
+        palettes={palettes}
+        moonPhase={phase}
+        className="block h-full w-full"
+      />
       <div className={HERO_SKY_FADE_CLASS} />
     </div>
   );

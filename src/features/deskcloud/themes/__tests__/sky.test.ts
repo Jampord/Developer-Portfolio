@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { lerpPalette } from "../../engine/renderer";
 import { sky } from "../sky";
+import { dawn, golden } from "../skyTints";
 
 const { day, night } = sky.palettes;
 
@@ -9,8 +10,12 @@ describe("Sky palettes", () => {
     expect(Object.keys(night).sort()).toEqual(Object.keys(day).sort());
   });
 
+  it("give the dawn and golden-hour tints the same colours too", () => {
+    for (const tint of [dawn, golden]) expect(Object.keys(tint).sort()).toEqual(Object.keys(day).sort());
+  });
+
   it("use valid RGB channels", () => {
-    for (const palette of [day, night]) {
+    for (const palette of [day, night, dawn, golden]) {
       for (const rgb of Object.values(palette)) {
         expect(rgb).toHaveLength(3);
         for (const channel of rgb) {

@@ -1,10 +1,11 @@
 import { Fragment, type CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUpRight, Download } from "lucide-react";
+import { ArrowDown, Download } from "lucide-react";
 import { SKY_OBSTACLE_ATTR } from "@/lib/hero-sky";
 import { site } from "@/lib/site";
 import { HeroIcons } from "./HeroIcons";
 import { LazyHeroSky } from "./LazyHeroSky";
+import { SkyCaption } from "./SkyCaption";
 
 const nameLines = ["John Ford", "Actub"];
 
@@ -102,15 +103,7 @@ export function Hero() {
           </div>
         </div>
 
-        <p data-hero-fade>
-          <Link
-            href={site.sky.href}
-            className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:text-primary ${surface}`}
-          >
-            {site.sky.caption}
-            <ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" />
-          </Link>
-        </p>
+        <SkyCaption />
       </div>
     </section>
   );
