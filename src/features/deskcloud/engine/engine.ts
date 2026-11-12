@@ -7,14 +7,14 @@ import {
   type OrbArc,
   type OrbPlacement,
 } from "./accents";
-import { createClouds, settleClouds, stepClouds, type CloudContext } from "./clouds";
+import { applyWake, createClouds, settleClouds, stepClouds, type CloudContext } from "./clouds";
 import { buildField, type Field } from "./field";
 import { buildGrid } from "./grid";
 import { createLoop } from "./loop";
 import { mulberry32 } from "./random";
 import { lerpPalette, renderScene } from "./renderer";
 import type { Palette, Theme } from "../themes/types";
-import type { Cloud, EngineOptions, Mode, Rect, Size } from "./types";
+import type { Cloud, EngineOptions, Mode, Mover, Rect, Size, Vec2 } from "./types";
 
 export type Engine = {
   /** Canvas size in CSS px; dpr should already be capped (at 2) */
@@ -61,6 +61,11 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   let size: Size = { width: 0, height: 0 };
   let dpr = 1;
   let obstacles: Rect[] = [];
+  /** Icon centres at the last frame, to tell how fast each one is being dragged */
+  let lastCentres: Vec2[] = [];
+  /** Smoothed velocity of each icon, by index, in px/s */
+  let velocities: Vec2[] = [];
+  let movers: Mover[] = [];
   let placement: OrbPlacement = { top: 0, horizon: 0, arc: null };
   let field: Field = buildField(buildGrid(size, obstacles, gridOptions()));
   let clouds: Cloud[] = [];
@@ -123,6 +128,8 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   function frame(dt: number) {
     elapsed += dt;
     const sim = context();
+    trackMovers(dt);
+    if (movers.length) applyWake(clouds, movers, dt, theme);
     stepClouds(clouds, dt, sim);
     stepAccents(accents, dt, sim);
     if (modeT !== modeTarget) {
@@ -130,6 +137,31 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
       modeT = modeT < modeTarget ? Math.min(modeTarget, modeT + step) : Math.max(modeTarget, modeT - step);
     }
     draw();
+  }
+
+  /**
+   * How fast each icon moved since the last frame, smoothed a little. Icons are matched by order;
+   * if the count changes, or one jumps further than a drag could move it (a relayout), it leaves no wake.
+   */
+  function trackMovers(dt: number) {
+    const centres = obstacles.map((r) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 }));
+    const tracked = dt > 0 && centres.length === lastCentres.length && velocities.length === centres.length;
+    const next: Vec2[] = [];
+    movers = [];
+    for (let i = 0; i < centres.length; i++) {
+      let v = { x: 0, y: 0 };
+      if (tracked) {
+        const dx = centres[i].x - lastCentres[i].x;
+        const dy = centres[i].y - lastCentres[i].y;
+        if (Math.hypot(dx, dy) <= MAX_DRAG_STEP) {
+          v = { x: mix(velocities[i].x, dx / dt, MOVER_SMOOTHING), y: mix(velocities[i].y, dy / dt, MOVER_SMOOTHING) };
+        }
+      }
+      next.push(v);
+      if (Math.hypot(v.x, v.y) > 1) movers.push({ ...centres[i], vx: v.x, vy: v.y, radius: radiusOf(obstacles[i]) });
+    }
+    lastCentres = centres;
+    velocities = next;
   }
 
   /** The loop runs only when there's something to animate and nobody asked it to stop */
@@ -258,6 +290,14 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
     },
   };
 }
+
+/** Further than this in one frame (px) is a relayout, not a drag */
+const MAX_DRAG_STEP = 160;
+/** How much of each frame's measured speed a mover takes on (the rest is its previous speed) */
+const MOVER_SMOOTHING = 0.5;
+
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+const radiusOf = (r: Rect) => Math.hypot(r.width, r.height) / 2;
 
 function sameRects(a: readonly Rect[], b: readonly Rect[]): boolean {
   if (a.length !== b.length) return false;

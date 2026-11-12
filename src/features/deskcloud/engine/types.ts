@@ -11,6 +11,9 @@ export type Rect = { x: number; y: number; width: number; height: number };
 
 export type Mode = "day" | "night";
 
+/** An icon on the move: its centre, its velocity in px/s, and half its diagonal */
+export type Mover = { x: number; y: number; vx: number; vy: number; radius: number };
+
 /** One circle of a cloud. Offsets are relative to the cloud's centre. */
 export type Puff = {
   /** Where the puff sits when nothing is in the way */

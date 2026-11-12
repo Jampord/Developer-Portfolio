@@ -41,6 +41,7 @@ export const sky: Theme = {
   flowReach: 160,
   minScale: 0.15,
   stiffness: 40,
+  wake: { reach: 110, drag: 9, swirl: 0.35, minSpeed: 60 },
   modeFade: 0.8,
 
   clouds: {

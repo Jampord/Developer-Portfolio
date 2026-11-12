@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { sky } from "../../themes/sky";
-import { cloudExtent, createClouds, settleClouds, stepClouds, type CloudContext } from "../clouds";
+import { applyWake, cloudExtent, createClouds, settleClouds, stepClouds, type CloudContext } from "../clouds";
 import { buildField } from "../field";
 import { buildGrid } from "../grid";
 import { mulberry32 } from "../random";
@@ -194,5 +194,49 @@ describe("drift", () => {
     for (let i = 0; i < 3; i++) stepClouds(b, 0.1 / 3, ctx);
 
     expect(a).toEqual(b);
+  });
+});
+
+describe("wake", () => {
+  const still = () => {
+    const clouds = createClouds(size, context([]).field, sky, mulberry32(11));
+    settleClouds(clouds, 50, context([]));
+    return clouds;
+  };
+
+  it("sweeps nearby puffs along with a fast icon, and leaves distant ones alone", () => {
+    const clouds = still();
+    const cloud = clouds[0];
+    const near = cloud.puffs[0];
+    const mover = { x: cloud.x + near.dx, y: cloud.y + near.dy + 40, vx: 600, vy: 0, radius: 50 };
+    const far = { cloud: clouds.find((c) => Math.abs(c.x - mover.x) > 400)!, i: 0 };
+
+    applyWake(clouds, [mover], 1 / 30, sky);
+
+    expect(near.vdx).toBeGreaterThan(50); // picked up the icon's direction
+    expect(far.cloud.puffs[far.i].vdx).toBe(0);
+  });
+
+  it("ignores slow icons", () => {
+    const clouds = still();
+    const cloud = clouds[0];
+    const p = cloud.puffs[0];
+    applyWake(clouds, [{ x: cloud.x + p.dx, y: cloud.y + p.dy, vx: sky.wake.minSpeed / 2, vy: 0, radius: 50 }], 1 / 30, sky);
+    expect(p.vdx).toBe(0);
+  });
+
+  it("lets the puffs drift back to rest once the icon has passed", () => {
+    const clouds = still();
+    const cloud = clouds[0];
+    const p = cloud.puffs[0];
+    for (let i = 0; i < 6; i++) {
+      applyWake(clouds, [{ x: cloud.x + p.restDx - 30, y: cloud.y + p.restDy, vx: 900, vy: 0, radius: 50 }], 1 / 30, sky);
+      stepClouds(clouds, 1 / 30, context([]), false);
+    }
+    expect(Math.abs(p.dx - p.restDx)).toBeGreaterThan(5);
+
+    settleClouds(clouds, 200, context([]));
+    expect(p.dx).toBeCloseTo(p.restDx, 2);
+    expect(p.dy).toBeCloseTo(p.restDy, 2);
   });
 });

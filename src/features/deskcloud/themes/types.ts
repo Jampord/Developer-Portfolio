@@ -56,6 +56,17 @@ export type Theme = {
   minScale: number;
   /** Spring stiffness for reflow, in 1/s² (higher = snappier) */
   stiffness: number;
+  /** An icon dragged quickly sweeps nearby puffs along behind it, then they drift back */
+  wake: {
+    /** How far past the icon's edge the wake reaches, in px */
+    reach: number;
+    /** How quickly puffs pick up the icon's speed, in 1/s */
+    drag: number;
+    /** Sideways push, as a fraction of the icon's speed, that curls puffs out around its path */
+    swirl: number;
+    /** Below this speed (px/s) an icon leaves no wake, so slow nudges stay calm */
+    minSpeed: number;
+  };
   /** Day ↔ night cross-fade length, in seconds */
   modeFade: number;
 

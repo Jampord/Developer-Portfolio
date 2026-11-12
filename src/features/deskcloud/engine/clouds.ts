@@ -1,6 +1,6 @@
 import type { Range, Theme } from "../themes/types";
 import type { Field } from "./field";
-import type { Cloud, Puff, Size } from "./types";
+import type { Cloud, Mover, Puff, Size } from "./types";
 
 /** Fixed time step for settling, and the largest step the simulation takes at once */
 export const SETTLE_DT = 1 / 30;
@@ -98,6 +98,38 @@ export function stepClouds(clouds: Cloud[], dt: number, ctx: CloudContext, drift
     for (const cloud of clouds) {
       if (drift) driftCloud(cloud, h, ctx.size.width);
       reflowCloud(cloud, h, ctx);
+    }
+  }
+}
+
+/**
+ * The wake behind icons being dragged: puffs near a fast-moving icon pick up its velocity (like air
+ * dragged along by a passing hand) plus a little sideways push that curls them out around its
+ * path. Only their velocities change, so the reflow springs carry them back once it has passed.
+ */
+export function applyWake(clouds: Cloud[], movers: readonly Mover[], dt: number, theme: Theme): void {
+  const { reach, drag, swirl, minSpeed } = theme.wake;
+  for (const m of movers) {
+    const speed = Math.hypot(m.vx, m.vy);
+    if (speed < minSpeed) continue;
+    const range = m.radius + reach;
+    for (const cloud of clouds) {
+      // Cheap reject: the whole cloud is out of range
+      if (Math.abs(cloud.x - m.x) > range + cloudExtent(cloud) + 60) continue;
+      for (const p of cloud.puffs) {
+        const ox = cloud.x + p.dx - m.x;
+        const oy = cloud.y + p.dy - m.y;
+        const d = Math.hypot(ox, oy);
+        if (d >= range) continue;
+        const near = 1 - d / range;
+        const k = Math.min(1, drag * near * near * dt);
+        // Which side of the icon's path the puff is on, so the swirl pushes it away from the path
+        const side = Math.sign(m.vx * oy - m.vy * ox) || 1;
+        const sx = (-m.vy / speed) * side * swirl * speed;
+        const sy = (m.vx / speed) * side * swirl * speed;
+        p.vdx += (m.vx + sx - p.vdx) * k;
+        p.vdy += (m.vy + sy - p.vdy) * k;
+      }
     }
   }
 }
