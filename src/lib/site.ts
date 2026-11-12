@@ -11,7 +11,7 @@ export const site = {
       "https://www.linkedin.com/in/john-ford-actub-074b7029b?utm_source=share_via&utm_content=profile&utm_medium=member_android",
   },
   tagline:
-    "Asset management for 1,500+ staff across 20 departments. An events platform for a church. An offline ledger for my mom's shop.",
+    "I build software people rely on. From an asset system for 1,500+ staff across 20 departments to an offline ledger for my mom's shop, and a church calendar in between.",
   /** Credit for the hero's background */
   sky: {
     caption: "Drawn by Deskcloud, a canvas engine I wrote by hand. 30fps, no libraries.",
