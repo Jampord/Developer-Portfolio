@@ -38,6 +38,7 @@ export const sky: Theme = {
   iconPadding: 20,
   density: 1.6,
   pushStrength: 1.15,
+  flowReach: 160,
   minScale: 0.15,
   stiffness: 40,
   modeFade: 0.8,
