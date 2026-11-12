@@ -122,6 +122,11 @@ body {
   color: var(--foreground);
 }
 
+/* A visitor who turned the hero's sky off never sees its placeholder flash in (see theme-script.ts) */
+[data-hero-sky-off] [data-hero-sky-layer] {
+  display: none;
+}
+
 ::selection {
   background: var(--accent);
   color: var(--accent-foreground);

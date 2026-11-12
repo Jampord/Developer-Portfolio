@@ -11,6 +11,8 @@ import {
   ExternalLink,
   FolderOpen,
   Clock,
+  Cloud,
+  CloudOff,
   Hash,
   Moon,
   Search,
@@ -20,6 +22,7 @@ import {
 import { projects } from "@/data/projects";
 import { site } from "@/lib/site";
 import { OPEN_PALETTE_EVENT } from "@/lib/command-palette";
+import { setHeroSky, useHeroSky } from "@/lib/hero-sky-pref";
 import { setSkyMode, useSkyMode } from "@/lib/sky-mode";
 
 type CopyState = "idle" | "done" | "failed";
@@ -60,6 +63,7 @@ export function CommandPalette() {
   const router = useRouter();
   const { resolvedTheme, setTheme } = useTheme();
   const skyMode = useSkyMode();
+  const heroSky = useHeroSky();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -199,6 +203,16 @@ export function CommandPalette() {
                 keywords={["sky", "clock", "time", "pampanga", "sunset", "auto"]}
                 onSelect={() => {
                   setSkyMode(skyMode === "clock" ? "theme" : "clock");
+                  setOpen(false);
+                }}
+              />
+              <PaletteItem
+                icon={heroSky === "off" ? Cloud : CloudOff}
+                label={heroSky === "off" ? site.sky.palette.skyOn : site.sky.palette.skyOff}
+                value="live sky on off"
+                keywords={["sky", "deskcloud", "animation", "motion", "background", "clouds"]}
+                onSelect={() => {
+                  setHeroSky(heroSky === "off" ? "on" : "off");
                   setOpen(false);
                 }}
               />

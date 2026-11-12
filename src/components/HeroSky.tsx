@@ -81,7 +81,7 @@ export function HeroSky() {
   }, []);
 
   return (
-    <div ref={root} aria-hidden="true" className={HERO_SKY_CLASS}>
+    <div ref={root} aria-hidden="true" data-hero-sky-layer className={HERO_SKY_CLASS}>
       <DeskcloudCanvas
         obstacles={obstacles}
         orbTop={orbTop}
