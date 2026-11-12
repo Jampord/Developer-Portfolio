@@ -30,12 +30,34 @@ export type Scene = {
 
 const TAU = Math.PI * 2;
 
-/** Crater spots on the moon, as fractions of its radius: x, y, size */
-const CRATERS: readonly (readonly [number, number, number])[] = [
-  [-0.32, -0.18, 0.22],
-  [0.26, 0.12, 0.16],
-  [-0.06, 0.4, 0.12],
+/**
+ * The moon's dark seas (maria) roughly where they really are on the near side, north up: centre
+ * x, y, radii x, y as fractions of the moon's radius, and how dark. They overlap and blur into the
+ * familiar face instead of reading as craters.
+ */
+const MARIA: readonly (readonly [number, number, number, number, number])[] = [
+  [-0.5, 0.02, 0.3, 0.46, 0.5], // Oceanus Procellarum
+  [-0.26, -0.3, 0.3, 0.24, 0.65], // Mare Imbrium
+  [0.02, -0.58, 0.36, 0.08, 0.4], // Mare Frigoris
+  [0.12, -0.28, 0.17, 0.15, 0.65], // Mare Serenitatis
+  [0.26, -0.04, 0.22, 0.18, 0.6], // Mare Tranquillitatis
+  [0.6, -0.22, 0.12, 0.1, 0.7], // Mare Crisium
+  [0.48, 0.2, 0.13, 0.16, 0.5], // Mare Fecunditatis
+  [0.3, 0.32, 0.09, 0.08, 0.45], // Mare Nectaris
+  [-0.18, 0.38, 0.2, 0.14, 0.45], // Mare Nubium
 ];
+/** How each sea is built: offset x, y (in its own radii), size and weight of each blob */
+const MARE_LOBES: readonly (readonly [number, number, number, number])[] = [
+  [0, 0, 1, 1],
+  [0.45, -0.3, 0.6, 0.7],
+  [-0.4, 0.35, 0.55, 0.6],
+];
+/** The bright young crater Tycho, low in the south: x, y, size */
+const TYCHO = [-0.12, 0.64, 0.05] as const;
+/** The sun's rim is a deeper amber than its centre (limb darkening) */
+const SUN_RIM: Rgb = [236, 140, 44];
+/** The seas are a cool grey against the moon's pale highlands */
+const MARE: Rgb = [112, 120, 132];
 
 export function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
   return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
@@ -138,6 +160,9 @@ function drawOrb(
   const lit = phase === null ? 1 : (1 - Math.cos(phase * TAU)) / 2;
   const glowStrength = 1 - night * (1 - lit) * 0.75;
 
+  const day = 1 - night;
+
+  // A wide, soft bloom: warm around the sun, cool and fainter around a thin moon
   const glowRadius = radius * glowScale;
   const glow = ctx.createRadialGradient(x, y, radius * 0.9, x, y, glowRadius);
   glow.addColorStop(0, css(palette.orbGlow, glowAlpha * shown * glowStrength));
@@ -145,35 +170,107 @@ function drawOrb(
   ctx.fillStyle = glow;
   ctx.fillRect(x - glowRadius, y - glowRadius, glowRadius * 2, glowRadius * 2);
 
-  // Lit from the upper left: a bright core by day, a pale limb shading toward the edge by night
-  const disc = ctx.createRadialGradient(x - radius * 0.3, y - radius * 0.3, 0, x, y, radius);
-  disc.addColorStop(0, css(mixRgb(palette.orb, WHITE, 0.55 * (1 - night) + 0.25 * night), shown));
-  disc.addColorStop(0.75, css(palette.orb, shown));
-  disc.addColorStop(1, css(mixRgb(palette.orb, palette.orbDetail, night * 0.6), shown));
+  if (day > 0.01) drawSun(ctx, x, y, radius, palette, day * shown);
+  if (night > 0.01) drawMoon(ctx, x, y, radius, palette, night * shown, phase, skyHeight);
+}
+
+/**
+ * The sun as a light source rather than a flat disc: a tight bright corona added onto the sky,
+ * then a disc that is near white in the middle and falls off to deep amber at the rim (limb
+ * darkening), with an edge soft enough to sit among the soft clouds.
+ */
+function drawSun(ctx: CanvasRenderingContext2D, x: number, y: number, radius: number, palette: Palette, alpha: number) {
+  const corona = ctx.createRadialGradient(x, y, radius * 0.95, x, y, radius * 1.7);
+  corona.addColorStop(0, css(mixRgb(palette.orbGlow, WHITE, 0.6), 0.7 * alpha));
+  corona.addColorStop(0.3, css(palette.orbGlow, 0.28 * alpha));
+  corona.addColorStop(1, css(palette.orbGlow, 0));
+  ctx.globalCompositeOperation = "lighter";
+  ctx.fillStyle = corona;
+  ctx.fillRect(x - radius * 1.7, y - radius * 1.7, radius * 3.4, radius * 3.4);
+  ctx.globalCompositeOperation = "source-over";
+
+  const edge = radius * 1.05;
+  const disc = ctx.createRadialGradient(x, y, 0, x, y, edge);
+  disc.addColorStop(0, css(mixRgb(palette.orb, WHITE, 0.92), alpha));
+  disc.addColorStop(0.5, css(mixRgb(palette.orb, WHITE, 0.62), alpha));
+  disc.addColorStop(0.82, css(mixRgb(palette.orb, WHITE, 0.2), alpha));
+  disc.addColorStop(0.94, css(mixRgb(palette.orb, SUN_RIM, 0.22), alpha));
+  disc.addColorStop(1, css(mixRgb(palette.orb, SUN_RIM, 0.22), 0));
   ctx.fillStyle = disc;
   ctx.beginPath();
-  ctx.arc(x, y, radius, 0, TAU);
+  ctx.arc(x, y, edge, 0, TAU);
   ctx.fill();
+}
 
-  if (night < 0.01) return;
-  for (const [dx, dy, size] of CRATERS) {
-    const cx = x + dx * radius;
-    const cy = y + dy * radius;
-    const r = size * radius;
-    const crater = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-    crater.addColorStop(0, css(palette.orbDetail, 0.75 * night * shown));
-    crater.addColorStop(1, css(palette.orbDetail, 0));
-    ctx.fillStyle = crater;
-    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+/**
+ * The moon as a lit body: pale highlands darkening a little toward the limb, its seas in their
+ * real places, Tycho's bright pinpoint, and a soft terminator. The dark side keeps a trace of
+ * earthshine, so the face still shows faintly through it.
+ */
+function drawMoon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  palette: Palette,
+  alpha: number,
+  phase: number | null,
+  skyHeight: number,
+) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, TAU);
+  ctx.clip();
+
+  const disc = ctx.createRadialGradient(x - radius * 0.15, y - radius * 0.15, 0, x, y, radius);
+  disc.addColorStop(0, css(mixRgb(palette.orb, WHITE, 0.25), alpha));
+  disc.addColorStop(0.7, css(palette.orb, alpha));
+  disc.addColorStop(1, css(mixRgb(palette.orb, palette.orbDetail, 0.55), alpha));
+  ctx.fillStyle = disc;
+  ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+
+  const mare = mixRgb(palette.orbDetail, MARE, 0.5);
+  // Each sea is a few overlapping soft blobs, so its edge is ragged rather than a clean oval
+  for (const [dx, dy, rx, ry, strength] of MARIA) {
+    for (const [ox, oy, k, w] of MARE_LOBES) {
+      ctx.save();
+      ctx.translate(x + (dx + ox * rx) * radius, y + (dy + oy * ry) * radius);
+      ctx.scale(rx * k * radius, ry * k * radius);
+      const sea = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+      sea.addColorStop(0, css(mare, 0.42 * w * strength * alpha));
+      sea.addColorStop(0.4, css(mare, 0.3 * w * strength * alpha));
+      sea.addColorStop(1, css(mare, 0));
+      ctx.fillStyle = sea;
+      ctx.fillRect(-1, -1, 2, 2);
+      ctx.restore();
+    }
   }
 
-  if (phase === null) return;
-  // The dark side takes the sky colour at the moon's height, with a trace of earthshine
-  const behind = skyColorAt(palette, skyHeight > 0 ? y / skyHeight : 0);
-  ctx.fillStyle = css(mixRgb(behind, palette.orbDetail, 0.1), 0.94 * night * shown);
-  ctx.beginPath();
-  moonShadow(ctx, x, y, radius, phase);
-  ctx.fill();
+  const [tx, ty, ts] = TYCHO;
+  const cx = x + tx * radius;
+  const cy = y + ty * radius;
+  const tycho = ctx.createRadialGradient(cx, cy, 0, cx, cy, ts * radius * 2.5);
+  tycho.addColorStop(0, css(WHITE, 0.75 * alpha));
+  tycho.addColorStop(0.3, css(WHITE, 0.25 * alpha));
+  tycho.addColorStop(1, css(WHITE, 0));
+  ctx.fillStyle = tycho;
+  ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+
+  if (phase !== null) {
+    // The dark side takes the sky colour at the moon's height. The blur softens the terminator the
+    // way the lunar surface does, and what shows through is earthshine.
+    const behind = skyColorAt(palette, skyHeight > 0 ? y / skyHeight : 0);
+    const shade = css(mixRgb(behind, palette.orbDetail, 0.12), 0.88 * alpha);
+    ctx.fillStyle = shade;
+    ctx.shadowColor = shade;
+    ctx.shadowBlur = Math.max(2, radius * 0.12);
+    ctx.beginPath();
+    moonShadow(ctx, x, y, radius, phase);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "transparent";
+  }
+  ctx.restore();
 }
 
 /** The sky gradient's colour at a height, as a share of the canvas (0 top, 1 bottom) */
