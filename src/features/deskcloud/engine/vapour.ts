@@ -9,11 +9,16 @@ import type { Cloud, Size, Vec2 } from "./types";
 // cloud sits above. Plain TypeScript with no DOM, so it's testable; the renderer only uploads
 // the result.
 
-/** How far a puff's density reaches, as a multiple of its radius (more = puffs fuse sooner) */
-export const FUSE = 1.35;
+/** How far a puff's density reaches, as a multiple of its radius (more = puffs fuse sooner, but rounder) */
+export const FUSE = 1.45;
+/**
+ * Peak density of one puff. Above 1, the threshold sits further out on the bump, so a puff
+ * shows at about 1.1× its radius (as large as the old soft sprites) while its outline stays lobed.
+ */
+export const PUFF_DENSITY = 2;
 /** Density below this is clear sky; above the second it's fully opaque cloud */
-export const EDGE_LOW = 0.2;
-export const EDGE_HIGH = 0.4;
+export const EDGE_LOW = 0.26;
+export const EDGE_HIGH = 0.34;
 /** Grid cells per layer to aim for, which sets the cell size (bigger screens get coarser cells) */
 const TARGET_CELLS = 160_000;
 const MIN_CELL = 3;
@@ -75,7 +80,7 @@ export function splatClouds(grid: VapourGrid, clouds: readonly Cloud[], layer: C
     if (cloud.layer !== layer) continue;
     for (const p of cloud.puffs) {
       // A puff squeezed to a sliver would read as a stray dot, so it fades out instead
-      let amount = smoothstep(SQUEEZE_HIDE, SQUEEZE_FULL, p.scale);
+      let amount = PUFF_DENSITY * smoothstep(SQUEEZE_HIDE, SQUEEZE_FULL, p.scale);
       const reach = p.r * p.scale * FUSE;
       if (amount <= 0 || reach < 0.5) continue;
       const cx = cloud.x + p.dx + p.wx;
