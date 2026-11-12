@@ -76,7 +76,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         </div>
         <span
           aria-hidden="true"
-          className="grid size-12 place-items-center rounded-full bg-primary text-background transition-transform group-hover:rotate-45"
+          className="grid size-12 place-items-center rounded-full bg-accent text-accent-foreground transition-transform group-hover:rotate-45"
         >
           <ArrowUpRight className="size-5" />
         </span>

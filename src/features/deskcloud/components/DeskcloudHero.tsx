@@ -23,7 +23,7 @@ export function DeskcloudHero() {
         <div className="flex flex-wrap gap-3">
           <a
             href="#waitlist"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {t.primaryCta}
             <ArrowDown className="size-4" aria-hidden="true" />

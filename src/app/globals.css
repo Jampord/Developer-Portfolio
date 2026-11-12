@@ -10,6 +10,9 @@
   --muted: #5b7a70;
   --primary: #0d9373;
   --frame: #0a6b55;
+  /* The sun's amber, for calls to action and highlights; a little deeper here so it holds up on the pale page */
+  --accent: #f6b93b;
+  --accent-foreground: #0a1f19;
 }
 
 .dark {
@@ -19,6 +22,8 @@
   --muted: #8fb3a6;
   --primary: #2ee0b0;
   --frame: #0f4a3c;
+  --accent: #ffd363;
+  --accent-foreground: #0a1f19;
 }
 
 @theme inline {
@@ -28,6 +33,8 @@
   --color-muted: var(--muted);
   --color-primary: var(--primary);
   --color-frame: var(--frame);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
   --font-display: var(--font-bricolage);
   --font-sans: var(--font-geist);
@@ -113,4 +120,9 @@
 body {
   background: var(--background);
   color: var(--foreground);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
