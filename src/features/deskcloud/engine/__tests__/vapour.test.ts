@@ -6,7 +6,7 @@ import { EDGE_HIGH, EDGE_LOW, shadeVapour, splatClouds, vapourGrid } from "../va
 const size = { width: 400, height: 300 };
 
 function puff(dx: number, dy: number, r: number, scale = 1): Puff {
-  return { restDx: dx, restDy: dy, r, dx, dy, scale, vdx: 0, vdy: 0, vscale: 0 };
+  return { restDx: dx, restDy: dy, r, dx, dy, scale, vdx: 0, vdy: 0, vscale: 0, wx: 0, wy: 0, wvx: 0, wvy: 0 };
 }
 
 function cloud(x: number, y: number, puffs: Puff[], layer: Cloud["layer"] = "front"): Cloud {

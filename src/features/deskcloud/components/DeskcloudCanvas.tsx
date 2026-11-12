@@ -10,6 +10,10 @@ import { sky } from "../themes";
 import { skyBackgroundClass, skyBackgroundStyle } from "./demoFrame";
 
 const MAX_DPR = 2;
+/** A pause longer than this (s) between moves starts a new stroke rather than a fast one */
+const STROKE_GAP = 0.1;
+/** Touch stirs more gently than a mouse */
+const TOUCH_STRENGTH = 0.6;
 
 /** next-themes puts the class on <html> before React loads, so this is right from the first paint */
 const currentMode = (): Mode => (document.documentElement.classList.contains("dark") ? "night" : "day");
@@ -84,7 +88,40 @@ export function DeskcloudCanvas({
     document.addEventListener("visibilitychange", syncPause);
     syncPause();
 
+    // Stirring: a moving cursor (or finger) over the sky pushes a gust of air. Listened for on the
+    // window, since the canvas sits under the page's content, and always passive, so it never
+    // gets in the way of clicking, dragging or scrolling.
+    let last: { x: number; y: number; t: number } | null = null;
+    const stir = (clientX: number, clientY: number, strength: number) => {
+      const t = performance.now();
+      const prev = last;
+      last = { x: clientX, y: clientY, t };
+      if (!prev) return;
+      const dt = (t - prev.t) / 1000;
+      if (dt <= 0 || dt > STROKE_GAP) return; // a fresh stroke, not a fast one
+      const rect = canvas.getBoundingClientRect();
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
+      // Screen movement, not movement over the canvas: on touch the page scrolls along with the finger
+      engine.stir(x, y, (clientX - prev.x) / dt, (clientY - prev.y) / dt, strength);
+    };
+    const onPointer = (e: PointerEvent) => {
+      if (e.pointerType !== "touch") stir(e.clientX, e.clientY, 1);
+    };
+    const onTouch = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      if (touch) stir(touch.clientX, touch.clientY, TOUCH_STRENGTH);
+    };
+    const onTouchEnd = () => (last = null);
+    window.addEventListener("pointermove", onPointer, { passive: true });
+    window.addEventListener("touchmove", onTouch, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+
     return () => {
+      window.removeEventListener("pointermove", onPointer);
+      window.removeEventListener("touchmove", onTouch);
+      window.removeEventListener("touchend", onTouchEnd);
       resize.disconnect();
       visibility.disconnect();
       motion.removeEventListener("change", onMotion);

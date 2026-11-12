@@ -26,6 +26,11 @@ export type Puff = {
   vdx: number;
   vdy: number;
   vscale: number;
+  /** Where the wind has blown it from that offset, and how fast; eased home over a few seconds */
+  wx: number;
+  wy: number;
+  wvx: number;
+  wvy: number;
 };
 
 export type Cloud = {

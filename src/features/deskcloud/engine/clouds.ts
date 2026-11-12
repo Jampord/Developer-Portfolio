@@ -1,6 +1,7 @@
 import type { Range, Theme } from "../themes/types";
 import type { Field } from "./field";
-import type { Cloud, Puff, Size } from "./types";
+import type { Cloud, Puff, Size, Vec2 } from "./types";
+import { windAt, type Wind } from "./wind";
 
 /** Fixed time step for settling, and the largest step the simulation takes at once */
 export const SETTLE_DT = 1 / 30;
@@ -45,7 +46,7 @@ function makePuffs(rng: () => number, count: number, baseRadius: number): Puff[]
   return radii.map((r, i) => {
     const restDx = xs[i] - centre;
     const restDy = baseline - r;
-    return { restDx, restDy, r, dx: restDx, dy: restDy, scale: 1, vdx: 0, vdy: 0, vscale: 0 };
+    return { restDx, restDy, r, dx: restDx, dy: restDy, scale: 1, vdx: 0, vdy: 0, vscale: 0, wx: 0, wy: 0, wvx: 0, wvy: 0 };
   });
 }
 
@@ -98,6 +99,65 @@ export function stepClouds(clouds: Cloud[], dt: number, ctx: CloudContext, drift
     for (const cloud of clouds) {
       if (drift) driftCloud(cloud, h, ctx.size.width);
       reflowCloud(cloud, h, ctx);
+    }
+  }
+}
+
+/** How quickly a puff picks up the air's speed, per second */
+const CATCH = 3;
+/** How strongly a blown puff is pulled home, per second²; with CATCH, it's back in about 2–3 s */
+const HEAL = 4;
+/** A puff never ends up closer to an icon's padded edge than this share of its radius */
+const KEEP_CLEAR = 0.85;
+/** Below this offset and speed a puff counts as home, and the wind leaves it alone */
+const AT_REST = 0.05;
+
+const air: Vec2 = { x: 0, y: 0 };
+
+/**
+ * Let the wind carry the puffs: each one picks up the air's speed where it is and is pulled
+ * gently back toward its place in the cloud, so a stirred cloud bends and tears, then heals over
+ * a few seconds. Puffs riding apart thin the vapour between them (see vapour.ts). The wind never
+ * pushes a puff onto an icon or the hero's name: it's held at their edge instead.
+ */
+export function blowClouds(clouds: Cloud[], wind: Wind, dt: number, field: Field): void {
+  if (dt <= 0) return;
+  for (const cloud of clouds) {
+    for (const p of cloud.puffs) {
+      const resting = Math.abs(p.wx) + Math.abs(p.wy) + Math.abs(p.wvx) + Math.abs(p.wvy) < AT_REST;
+      if (resting && !wind.active) continue;
+      const x = cloud.x + p.dx + p.wx;
+      const y = cloud.y + p.dy + p.wy;
+      windAt(wind, x, y, air);
+      const k = Math.min(1, CATCH * dt);
+      p.wvx += (air.x - p.wvx) * k - HEAL * p.wx * dt;
+      p.wvy += (air.y - p.wvy) * k - HEAL * p.wy * dt;
+      p.wx += p.wvx * dt;
+      p.wy += p.wvy * dt;
+
+      // Held at the edge of anything solid: step back out along the way away from it
+      const need = p.r * p.scale * KEEP_CLEAR;
+      const nx = cloud.x + p.dx + p.wx;
+      const ny = cloud.y + p.dy + p.wy;
+      const c = field.sample(nx, ny);
+      if (c < need && c < field.sample(cloud.x + p.dx, cloud.y + p.dy)) {
+        const g = field.gradient(nx, ny);
+        const len = Math.hypot(g.x, g.y);
+        if (len > 1e-6) {
+          const ux = g.x / len;
+          const uy = g.y / len;
+          p.wx += ux * (need - c);
+          p.wy += uy * (need - c);
+          const into = p.wvx * ux + p.wvy * uy;
+          if (into < 0) {
+            p.wvx -= into * ux;
+            p.wvy -= into * uy;
+          }
+        } else {
+          // Deep inside with no way out: let go of the gust
+          p.wx = p.wy = p.wvx = p.wvy = 0;
+        }
+      }
     }
   }
 }

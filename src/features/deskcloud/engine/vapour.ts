@@ -22,6 +22,11 @@ const MIN_CELL = 3;
 const SQUEEZE_HIDE = 0.3;
 const SQUEEZE_FULL = 0.55;
 
+/** A puff moving faster than this (px/s) in the wind starts to stretch, up to 1 + MAX_STRETCH times its length */
+const STRETCH_FROM = 40;
+const STRETCH_SPEED = 220;
+const MAX_STRETCH = 1.6;
+
 export type VapourGrid = {
   /** Size of one cell in CSS px */
   cell: number;
@@ -70,16 +75,33 @@ export function splatClouds(grid: VapourGrid, clouds: readonly Cloud[], layer: C
     if (cloud.layer !== layer) continue;
     for (const p of cloud.puffs) {
       // A puff squeezed to a sliver would read as a stray dot, so it fades out instead
-      const amount = smoothstep(SQUEEZE_HIDE, SQUEEZE_FULL, p.scale);
+      let amount = smoothstep(SQUEEZE_HIDE, SQUEEZE_FULL, p.scale);
       const reach = p.r * p.scale * FUSE;
       if (amount <= 0 || reach < 0.5) continue;
-      const cx = cloud.x + p.dx;
-      const cy = cloud.y + p.dy;
+      const cx = cloud.x + p.dx + p.wx;
+      const cy = cloud.y + p.dy + p.wy;
       const inv = 1 / (reach * reach);
-      const c0 = Math.max(0, Math.floor((cx - reach) / cell - 0.5));
-      const c1 = Math.min(cols - 1, Math.ceil((cx + reach) / cell - 0.5));
-      const r0 = Math.max(0, Math.floor((cy - reach) / cell - 0.5));
-      const r1 = Math.min(rows - 1, Math.ceil((cy + reach) / cell - 0.5));
+
+      // A puff the wind is carrying stretches into a thinner streak along its path, so torn-off
+      // pieces read as wisps rather than balls
+      const speed = Math.hypot(p.wvx, p.wvy);
+      let along = 1;
+      let across = 1;
+      let ux = 1;
+      let uy = 0;
+      if (speed > STRETCH_FROM) {
+        const e = 1 + Math.min(MAX_STRETCH, (speed - STRETCH_FROM) / STRETCH_SPEED);
+        along = 1 / e;
+        across = Math.sqrt(e);
+        ux = p.wvx / speed;
+        uy = p.wvy / speed;
+        amount /= Math.pow(e, 0.35);
+      }
+      const extent = reach / along;
+      const c0 = Math.max(0, Math.floor((cx - extent) / cell - 0.5));
+      const c1 = Math.min(cols - 1, Math.ceil((cx + extent) / cell - 0.5));
+      const r0 = Math.max(0, Math.floor((cy - extent) / cell - 0.5));
+      const r1 = Math.min(rows - 1, Math.ceil((cy + extent) / cell - 0.5));
       if (c0 > c1 || r0 > r1) continue;
       if (c0 < bounds.minCol) bounds.minCol = c0;
       if (c1 > bounds.maxCol) bounds.maxCol = c1;
@@ -87,11 +109,12 @@ export function splatClouds(grid: VapourGrid, clouds: readonly Cloud[], layer: C
       if (r1 > bounds.maxRow) bounds.maxRow = r1;
       for (let row = r0; row <= r1; row++) {
         const dy = (row + 0.5) * cell - cy;
-        const dy2 = dy * dy;
         const base = row * cols;
         for (let col = c0; col <= c1; col++) {
           const dx = (col + 0.5) * cell - cx;
-          const q = (dx * dx + dy2) * inv;
+          const a = (dx * ux + dy * uy) * along;
+          const b = (dy * ux - dx * uy) * across;
+          const q = (a * a + b * b) * inv;
           if (q >= 1) continue;
           const k = 1 - q;
           density[base + col] += amount * k * k;

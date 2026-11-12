@@ -21,7 +21,7 @@ export const en = {
     subhead,
     primaryCta: "Join the waitlist",
     secondaryCta: "How I built it",
-    hint: "Try dragging an icon.",
+    hint: "Drag an icon, or sweep your cursor through the sky.",
   },
 
   howItWorks: {
@@ -34,11 +34,11 @@ export const en = {
       },
       {
         title: "It keeps them clear",
-        body: "Each cloud is a cluster of soft puffs that slide aside or shrink, so nothing ever covers your files.",
+        body: "Clouds are soft vapour that flows over or under each icon, so nothing ever covers your files.",
       },
       {
         title: "It reshapes when you move things",
-        body: "Drop an icon somewhere new and the sky reflows around it, then fills back in where it used to be.",
+        body: "Drop an icon somewhere new and the sky reflows around it. Sweep your cursor across it and a gust bends the clouds, which drift back together a moment later.",
       },
     ],
   },

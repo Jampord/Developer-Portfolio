@@ -7,14 +7,15 @@ import {
   type OrbArc,
   type OrbPlacement,
 } from "./accents";
-import { createClouds, settleClouds, stepClouds, type CloudContext } from "./clouds";
+import { blowClouds, createClouds, settleClouds, stepClouds, type CloudContext } from "./clouds";
 import { buildField, type Field } from "./field";
 import { buildGrid } from "./grid";
 import { createLoop } from "./loop";
 import { mulberry32 } from "./random";
 import { lerpPalette, renderScene } from "./renderer";
 import type { Palette, Theme } from "../themes/types";
-import type { Cloud, EngineOptions, Mode, Rect, Size } from "./types";
+import type { Cloud, EngineOptions, Mode, Rect, Size, Vec2 } from "./types";
+import { createWind, gust, setWindSolids, stepWind, type Wind } from "./wind";
 
 export type Engine = {
   /** Canvas size in CSS px; dpr should already be capped (at 2) */
@@ -39,6 +40,11 @@ export type Engine = {
   setTheme(theme: Theme): void;
   /** Rain streaks (0–1, none with reduced motion) and how much cloud hides the sun or moon (0–1) */
   setWeather(weather: Weather): void;
+  /**
+   * A cursor or finger moving over the sky at (x, y) canvas px, at (vx, vy) px/s: it pushes a gust
+   * into the air there. `strength` (0–1) is lighter for touch. Ignored with reduced motion.
+   */
+  stir(x: number, y: number, vx: number, vy: number, strength?: number): void;
   /** On: stop the loop and draw a settled scene once per change */
   setReducedMotion(on: boolean): void;
   pause(): void;
@@ -51,6 +57,17 @@ export type Weather = { rain: number; sunHidden: number; lightning: number; fog:
 
 const CALM: Weather = { rain: 0, sunHidden: 0, lightning: 0, fog: 0, wind: 1 };
 
+/** A gust from the cursor reaches this far (px) and pulls the air this much toward its speed */
+const STIR_RADIUS = 80;
+const STIR_WEIGHT = 0.55;
+/** A dragged icon pushes the air around it, out to this far past its edge (px) */
+const ICON_REACH = 30;
+const ICON_WEIGHT = 0.6;
+/** Further than this in one frame (px) is a relayout, not a drag */
+const MAX_DRAG_STEP = 160;
+
+type Stir = { x: number; y: number; vx: number; vy: number; strength: number };
+
 /** Enough fixed steps for the springs to come to rest */
 const SETTLE_STEPS = 90;
 
@@ -61,6 +78,11 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   let size: Size = { width: 0, height: 0 };
   let dpr = 1;
   let obstacles: Rect[] = [];
+  let wind: Wind = createWind({ width: 0, height: 0 });
+  /** Gusts from the cursor since the last frame */
+  let stirs: Stir[] = [];
+  /** Icon centres at the last frame, to tell how fast each one is being dragged */
+  let lastCentres: Vec2[] = [];
   let placement: OrbPlacement = { top: 0, horizon: 0, arc: null };
   let field: Field = buildField(buildGrid(size, obstacles, gridOptions()));
   let clouds: Cloud[] = [];
@@ -90,6 +112,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
 
   function rebuildField() {
     field = buildField(buildGrid(size, obstacles, gridOptions()));
+    setWindSolids(wind, field);
   }
 
   /** Fresh seeded layout for the current size, settled so the first paint already avoids the icons */
@@ -123,13 +146,34 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   function frame(dt: number) {
     elapsed += dt;
     const sim = context();
+    pushGusts(dt);
+    stepWind(wind, dt);
     stepClouds(clouds, dt, sim);
+    blowClouds(clouds, wind, dt, field);
     stepAccents(accents, dt, sim);
     if (modeT !== modeTarget) {
       const step = dt / theme.modeFade;
       modeT = modeT < modeTarget ? Math.min(modeTarget, modeT + step) : Math.max(modeTarget, modeT - step);
     }
     draw();
+  }
+
+  /** Gusts from the cursor, and from icons being dragged (matched by order; a jump is a relayout, not a drag) */
+  function pushGusts(dt: number) {
+    for (const s of stirs) gust(wind, s.x, s.y, s.vx, s.vy, STIR_RADIUS, STIR_WEIGHT * s.strength);
+    stirs = [];
+
+    const centres = obstacles.map((r) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 }));
+    if (dt > 0 && centres.length === lastCentres.length) {
+      for (let i = 0; i < centres.length; i++) {
+        const dx = centres[i].x - lastCentres[i].x;
+        const dy = centres[i].y - lastCentres[i].y;
+        if ((dx === 0 && dy === 0) || Math.hypot(dx, dy) > MAX_DRAG_STEP) continue;
+        const r = obstacles[i];
+        gust(wind, centres[i].x, centres[i].y, dx / dt, dy / dt, Math.hypot(r.width, r.height) / 2 + ICON_REACH, ICON_WEIGHT);
+      }
+    }
+    lastCentres = centres;
   }
 
   /** The loop runs only when there's something to animate and nobody asked it to stop */
@@ -153,6 +197,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
       const resized = width !== size.width || height !== size.height;
       size = { width, height };
       dpr = nextDpr;
+      if (resized) wind = createWind(size);
       canvas.width = Math.max(1, Math.round(width * dpr));
       canvas.height = Math.max(1, Math.round(height * dpr));
       if (resized) {
@@ -230,6 +275,13 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
         modeT = modeTarget;
         draw();
       }
+    },
+
+    stir(x, y, vx, vy, strength = 1) {
+      if (destroyed || reducedMotion || !loop.running) return;
+      // Many events can arrive between frames; keep the latest few
+      if (stirs.length >= 8) stirs.shift();
+      stirs.push({ x, y, vx, vy, strength });
     },
 
     setReducedMotion(on) {
