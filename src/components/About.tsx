@@ -5,7 +5,7 @@ export function About() {
   return (
     <section id="about" className="scroll-mt-28 border-t border-foreground/10 py-24">
       <Reveal>
-        <p className="font-mono text-sm text-primary">{"//"} 02 – about</p>
+        <p className="font-mono text-sm text-primary">{"//"} 01 – about</p>
         <h2 className="font-display text-4xl font-bold md:text-6xl">About &amp; Capabilities</h2>
       </Reveal>
 

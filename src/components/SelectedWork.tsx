@@ -202,7 +202,7 @@ export function SelectedWork() {
         <div className="work-pin">
           <div>
             <Reveal>
-              <p className="font-mono text-sm text-primary">{"//"} 01 – work</p>
+              <p className="font-mono text-sm text-primary">{"//"} 02 – work</p>
               <h2 className="font-display text-4xl font-bold md:text-6xl">Selected Work</h2>
             </Reveal>
 
