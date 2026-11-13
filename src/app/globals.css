@@ -52,6 +52,9 @@
   --ease-spring-gentle: cubic-bezier(0.34, 1.2, 0.64, 1);
 
   --press-scale: 0.97;
+
+  /* The smallest area that takes a tap, however small the control looks */
+  --tap-min: 44px;
 }
 
 @theme inline {
@@ -102,6 +105,54 @@
       scale: none;
       opacity: 0.7;
     }
+  }
+}
+
+/* Small controls: an invisible box, centred on the element, makes the area that takes a tap at
+   least 44px each way without changing how the control looks. */
+@utility tap-target {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max(100%, var(--tap-min));
+    height: max(100%, var(--tap-min));
+    translate: -50% -50%;
+  }
+}
+
+/* The phone menu under the nav: it fades and settles into place, and leaves a little faster.
+   With reduced motion it only fades. */
+.nav-menu {
+  visibility: hidden;
+  opacity: 0;
+  translate: 0 -4px;
+  scale: 0.98;
+  transform-origin: top right;
+  transition:
+    opacity var(--duration-fast) var(--ease-exit),
+    translate var(--duration-fast) var(--ease-exit),
+    scale var(--duration-fast) var(--ease-exit),
+    visibility 0s var(--duration-fast);
+}
+.nav-menu[data-open] {
+  visibility: visible;
+  opacity: 1;
+  translate: none;
+  scale: none;
+  transition:
+    opacity var(--duration-base) var(--ease-enter),
+    translate var(--duration-base) var(--ease-enter),
+    scale var(--duration-base) var(--ease-enter),
+    visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-menu {
+    translate: none;
+    scale: none;
   }
 }
 

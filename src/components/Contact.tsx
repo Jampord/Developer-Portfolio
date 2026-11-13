@@ -17,7 +17,7 @@ export function Contact() {
             <p className="text-lg">
               Have a role, a project or just a question? Send a message and I&apos;ll get back to you.
             </p>
-            <ul className="space-y-3">
+            <ul className="space-y-1">
               {[
                 { label: "Email", href: `mailto:${site.email}`, text: site.email },
                 { label: "GitHub", href: site.links.github, text: "GitHub" },
@@ -26,7 +26,7 @@ export function Contact() {
                 <li key={l.label}>
                   <a
                     href={l.href}
-                    className="group inline-flex items-center gap-2 font-display text-xl font-bold transition-colors hover:text-primary"
+                    className="group inline-flex min-h-11 items-center gap-2 font-display text-xl font-bold transition-colors hover:text-primary"
                     {...(l.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   >
                     {l.text}

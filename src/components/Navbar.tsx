@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { ThemeToggle } from "./ThemeToggle";
+import { NavMenu } from "./NavMenu";
 import { PaletteTrigger } from "./PaletteTrigger";
 
 export function Nav() {
@@ -8,9 +9,9 @@ export function Nav() {
     <header className="sticky top-4 z-50 mx-auto w-[calc(100%-2rem)] max-w-6xl pt-4">
       <nav
         aria-label="Main"
-        className="flex items-center justify-between rounded-full border border-foreground/10 bg-card/80 py-2 pl-2 pr-2 backdrop-blur-md"
+        className="relative flex items-center justify-between rounded-full border border-foreground/10 bg-card/80 py-2 pl-2 pr-2 backdrop-blur-md"
       >
-        <Link href="/" aria-label={`${site.name}, home`} className="flex items-center gap-2 pr-2">
+        <Link href="/" aria-label={`${site.name}, home`} className="tap-target flex items-center gap-2 pr-2">
           <span className="grid size-9 place-items-center rounded-xl bg-primary font-display text-sm font-extrabold text-background">
             {site.shortName}
           </span>
@@ -20,7 +21,7 @@ export function Nav() {
         <ul className="hidden items-center gap-1 md:flex">
           {site.nav.map((item) => (
             <li key={item.href}>
-              <Link href={item.href} className="pressable rounded-full px-4 py-2 text-sm hover:bg-foreground/5">
+              <Link href={item.href} className="tap-target pressable rounded-full px-4 py-2 text-sm hover:bg-foreground/5">
                 {item.label}
               </Link>
             </li>
@@ -32,10 +33,11 @@ export function Nav() {
           <ThemeToggle />
           <Link
             href="/#contact"
-            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground pressable hover:opacity-90"
+            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground tap-target pressable hover:opacity-90"
           >
             Let&apos;s talk
           </Link>
+          <NavMenu />
         </div>
       </nav>
     </header>

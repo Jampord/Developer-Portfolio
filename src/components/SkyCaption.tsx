@@ -30,7 +30,7 @@ const MODES: SkyMode[] = ["clock", "theme"];
 const SKY: HeroSkyPref[] = ["on", "off"];
 
 const pill =
-  "whitespace-nowrap rounded-full px-2 py-0.5 text-muted pressable hover:text-foreground aria-pressed:bg-primary aria-pressed:text-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary";
+  "tap-target whitespace-nowrap rounded-full px-3 py-1.5 text-muted pressable hover:text-foreground aria-pressed:bg-primary aria-pressed:text-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary";
 
 /** The icon for the weather in Pampanga right now, by day or night */
 function weatherIcon(weather: SkyWeather | null, night: boolean): LucideIcon {
@@ -147,7 +147,7 @@ export function SkyCaption() {
             focusSkySwitch = true;
             setHeroSky("on");
           }}
-          className={`group inline-flex items-center gap-2 rounded-full py-2.5 pl-4 pr-5 text-sm font-medium pressable hover:-translate-y-0.5 hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary relative ${surface}`}
+          className={`group inline-flex items-center gap-2 rounded-full py-3 pl-4 pr-5 text-sm font-medium pressable hover:-translate-y-0.5 hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary relative ${surface}`}
         >
           <Cloud aria-hidden="true" className="size-4 text-primary transition-transform duration-(--duration-slow) group-hover:translate-x-0.5 group-hover:-translate-y-px" />
           {sky.turnOn}
@@ -159,8 +159,8 @@ export function SkyCaption() {
   return (
     <div data-hero-fade className="flex flex-col items-start gap-2">
       <WeatherCard now={now} />
-      <div className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl px-3 py-1.5 font-mono text-xs ${surface}`}>
-        <div role="group" aria-label={sky.switchLabel} className="flex items-center gap-1">
+      <div className={`flex flex-wrap items-center gap-x-3 gap-y-4 rounded-2xl px-3 py-1.5 font-mono sm:gap-y-1.5 text-xs ${surface}`}>
+        <div role="group" aria-label={sky.switchLabel} className="flex items-center gap-1.5">
           <span className="text-muted">{sky.switchLabel}:</span>
           {MODES.map((m) => (
             <button
@@ -175,7 +175,7 @@ export function SkyCaption() {
           ))}
         </div>
         <span aria-hidden="true" className="hidden h-4 w-px bg-foreground/15 sm:block" />
-        <div role="group" aria-label={sky.skyLabel} className="flex items-center gap-1">
+        <div role="group" aria-label={sky.skyLabel} className="flex items-center gap-1.5">
           <span className="text-muted">{sky.skyLabel}:</span>
           {SKY.map((s) => (
             <button
@@ -193,7 +193,7 @@ export function SkyCaption() {
       </div>
       <Link
         href={sky.href}
-        className={`inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:text-primary ${surface}`}
+        className={`tap-target inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:text-primary ${surface}`}
       >
         {sky.caption}
         <ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" />

@@ -211,7 +211,7 @@ export function SelectedWork() {
               <li key={p.slug}>
                 <Link
                   href={`/projects/${p.slug}`}
-                  className="group/also inline-flex items-center gap-1 font-display text-xl font-bold hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
+                  className="group/also tap-target inline-flex items-center gap-1 font-display text-xl font-bold hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   {p.title}
                   <ArrowUpRight aria-hidden="true" className="size-4 transition-transform group-hover/also:rotate-45" />

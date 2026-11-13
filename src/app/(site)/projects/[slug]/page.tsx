@@ -49,7 +49,7 @@ export default async function ProjectPage({ params }: Props) {
     <article className="mx-auto w-[calc(100%-2rem)] max-w-6xl pb-12 pt-12">
       <Link
         href="/#work"
-        className="inline-flex items-center gap-2 font-mono text-sm text-muted transition-colors hover:text-primary"
+        className="tap-target inline-flex items-center gap-2 font-mono text-sm text-muted transition-colors hover:text-primary"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
         Back to work
