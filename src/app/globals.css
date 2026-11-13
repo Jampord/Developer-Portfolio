@@ -197,7 +197,8 @@
   }
 
   [data-hero-tile] {
-    animation: hero-tile 1.1s var(--ease-spring-snappy) both;
+    /* Lands once: no overshoot, so the tile never drifts back after it arrives */
+    animation: hero-tile 1.1s var(--ease-enter) both;
   }
   [data-hero-char] {
     animation: hero-rise 1s var(--ease-enter) both;
