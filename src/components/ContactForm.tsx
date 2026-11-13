@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Send } from "lucide-react";
+import { Check, Send } from "lucide-react";
 import { contactSchema, type ContactValues } from "@/lib/contact-schema";
 import { site } from "@/lib/site";
 
@@ -19,7 +19,11 @@ export function ContactForm() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<ContactValues>({ resolver: zodResolver(contactSchema) });
+  } = useForm<ContactValues>({
+    resolver: zodResolver(contactSchema),
+    // A field is checked when you leave it, then again as you fix it
+    mode: "onTouched",
+  });
 
   async function onSubmit(values: ContactValues) {
     setStatus("sending");
@@ -43,7 +47,13 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="grid gap-5">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      // Writing a new message puts the button back to "Send message"
+      onInput={() => status === "sent" && setStatus("idle")}
+      noValidate
+      className="grid gap-5"
+    >
       <div>
         <label htmlFor="name" className="font-mono text-xs text-primary">
           {"//"} name
@@ -57,7 +67,7 @@ export function ContactForm() {
           {...register("name")}
         />
         {errors.name && (
-          <p id="name-error" className="mt-1 text-sm text-red-500">
+          <p id="name-error" className="field-note mt-1 text-sm text-red-500">
             {errors.name.message}
           </p>
         )}
@@ -77,7 +87,7 @@ export function ContactForm() {
           {...register("email")}
         />
         {errors.email && (
-          <p id="email-error" className="mt-1 text-sm text-red-500">
+          <p id="email-error" className="field-note mt-1 text-sm text-red-500">
             {errors.email.message}
           </p>
         )}
@@ -96,7 +106,7 @@ export function ContactForm() {
           {...register("message")}
         />
         {errors.message && (
-          <p id="message-error" className="mt-1 text-sm text-red-500">
+          <p id="message-error" className="field-note mt-1 text-sm text-red-500">
             {errors.message.message}
           </p>
         )}
@@ -111,16 +121,24 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="inline-flex items-center justify-center gap-2 justify-self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground pressable hover:opacity-90 disabled:opacity-60"
+        className={`inline-flex items-center justify-center gap-2 justify-self-start rounded-full px-6 py-3 text-sm font-medium pressable hover:opacity-90 disabled:opacity-60 ${
+          status === "sent" ? "success-ring bg-primary text-background" : "bg-accent text-accent-foreground"
+        }`}
       >
-        {status === "sending" ? "Sending…" : "Send message"}
-        <Send className="settle nudge-out size-4" aria-hidden="true" />
+        {status === "sent" ? "Message sent" : status === "sending" ? "Sending…" : "Send message"}
+        {status === "sent" ? (
+          <Check className="success-pop size-4" strokeWidth={3} aria-hidden="true" />
+        ) : (
+          <Send className="settle nudge-out size-4" aria-hidden="true" />
+        )}
       </button>
 
       <div aria-live="polite" className="min-h-6 text-sm">
-        {status === "sent" && <p className="text-primary">Thanks! Your message is on its way. I&apos;ll reply soon.</p>}
+        {status === "sent" && (
+          <p className="success-note text-primary">Thanks! Your message is on its way. I&apos;ll reply soon.</p>
+        )}
         {status === "error" && (
-          <p className="text-red-500">
+          <p className="field-note text-red-500">
             Something went wrong. Please email me directly at{" "}
             <a className="underline" href={`mailto:${site.email}`}>
               {site.email}
@@ -129,7 +147,7 @@ export function ContactForm() {
           </p>
         )}
         {status === "limited" && (
-          <p className="text-red-500">
+          <p className="field-note text-red-500">
             You&apos;ve sent a few messages in a short time. Please try again later, or email me directly at{" "}
             <a className="underline" href={`mailto:${site.email}`}>
               {site.email}

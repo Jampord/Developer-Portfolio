@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { waitlistSchema, type WaitlistInput, type WaitlistValues } from "@/lib/waitlist-schema";
 import { en } from "../content/en";
 
@@ -42,7 +42,13 @@ export function WaitlistForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="relative grid gap-3">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      // Typing another address puts the button back to normal
+      onInput={() => status === "done" && setStatus("idle")}
+      noValidate
+      className="relative grid gap-3"
+    >
       <label htmlFor="waitlist-email" className="font-mono text-xs text-primary">
         {t.form.emailLabel}
       </label>
@@ -61,14 +67,20 @@ export function WaitlistForm() {
         <button
           type="submit"
           disabled={status === "sending"}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground pressable hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60"
+          className={`inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium pressable hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60 ${
+            status === "done" ? "success-ring bg-primary text-background" : "bg-accent text-accent-foreground"
+          }`}
         >
           {status === "sending" ? t.form.sending : t.form.submit}
-          <ArrowRight className="size-4" aria-hidden="true" />
+          {status === "done" ? (
+            <Check className="success-pop size-4" strokeWidth={3} aria-hidden="true" />
+          ) : (
+            <ArrowRight className="size-4" aria-hidden="true" />
+          )}
         </button>
       </div>
       {errors.email && (
-        <p id="waitlist-email-error" className="text-sm text-red-500">
+        <p id="waitlist-email-error" className="field-note text-sm text-red-500">
           {errors.email.message}
         </p>
       )}
@@ -84,9 +96,9 @@ export function WaitlistForm() {
       </p>
 
       <div aria-live="polite" className="min-h-6 text-sm">
-        {status === "done" && <p className="text-primary">{t.status.done}</p>}
-        {status === "error" && <p className="text-red-500">{t.status.error}</p>}
-        {status === "limited" && <p className="text-red-500">{t.status.limited}</p>}
+        {status === "done" && <p className="success-note text-primary">{t.status.done}</p>}
+        {status === "error" && <p className="field-note text-red-500">{t.status.error}</p>}
+        {status === "limited" && <p className="field-note text-red-500">{t.status.limited}</p>}
       </div>
     </form>
   );

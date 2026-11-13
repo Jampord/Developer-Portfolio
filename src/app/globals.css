@@ -202,6 +202,71 @@
   }
 }
 
+/* Success: the one moment that is allowed to be loud. The tick pops in with a spring while a ring
+   spreads out from the button and fades, and the message under it follows a beat later.
+   With reduced motion everything simply fades in. */
+@keyframes success-pop {
+  from {
+    opacity: 0;
+    scale: 0.4;
+    rotate: -30deg;
+  }
+}
+@keyframes success-ring {
+  from {
+    opacity: 0.55;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 1.35 1.9;
+  }
+}
+@keyframes note-in {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+.success-pop {
+  animation: success-pop var(--duration-slow) var(--ease-spring-snappy) both;
+}
+.success-ring {
+  position: relative;
+}
+.success-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--primary);
+  pointer-events: none;
+  animation: success-ring calc(var(--duration-slow) * 2) var(--ease-enter) both;
+}
+.success-note {
+  animation: note-in var(--duration-slow) var(--ease-enter) calc(var(--stagger) * 2) both;
+}
+/* Inline notes under a field: they ease in, so an error never just snaps onto the page */
+.field-note {
+  animation: note-in var(--duration-base) var(--ease-enter) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .success-pop,
+  .success-note,
+  .field-note {
+    animation-name: fade-in;
+  }
+  .success-ring::before {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* Small controls: an invisible box, centred on the element, makes the area that takes a tap at
    least 44px each way without changing how the control looks. */
 @utility tap-target {
