@@ -49,8 +49,8 @@ export const site = {
   /** The button that shows the section links on small screens */
   menu: { open: "Open menu", close: "Close menu" },
   nav: [
-    { label: "Work", href: "/#work" },
     { label: "About", href: "/#about" },
+    { label: "Work", href: "/#work" },
     { label: "Experience", href: "/#experience" },
     { label: "Contact", href: "/#contact" },
   ],

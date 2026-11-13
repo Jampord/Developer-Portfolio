@@ -23,8 +23,8 @@ export default function Home() {
       {/* The hero is full width for its sky; everything below sits in the page column */}
       <Hero />
       <div className="mx-auto w-[calc(100%-2rem)] max-w-6xl">
-        <SelectedWork />
         <About />
+        <SelectedWork />
         <Experience />
         <Contact />
       </div>
