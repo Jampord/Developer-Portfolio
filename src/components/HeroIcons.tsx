@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { featuredProjects, type Project } from "@/data/projects";
 import { SKY_OBSTACLE_ATTR, SKY_OBSTACLES_EVENT } from "@/lib/hero-sky";
+import { site } from "@/lib/site";
 
 type Offset = { x: number; y: number };
 
@@ -73,7 +74,7 @@ function HeroIcon({ project }: { project: Project & { icon: NonNullable<Project[
       ref={ref}
       href={`/projects/${project.slug}`}
       draggable={false}
-      data-cursor="Open"
+      title={site.tooltips.icon(project.title)}
       {...{ [SKY_OBSTACLE_ATTR]: "" }}
       onPointerDown={(e) => {
         dragged.current = false;
