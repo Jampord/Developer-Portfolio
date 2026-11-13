@@ -11,7 +11,7 @@ type Props = {
 };
 
 const button =
-  "inline-flex items-center gap-1.5 rounded-full bg-background/90 px-3.5 py-1.5 font-mono text-sm text-foreground shadow-sm transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-disabled:cursor-not-allowed aria-disabled:opacity-50";
+  "inline-flex items-center gap-1.5 rounded-full bg-background/90 px-3.5 py-1.5 font-mono text-sm text-foreground shadow-sm pressable hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-disabled:cursor-not-allowed aria-disabled:opacity-50";
 
 /** A taskbar along the bottom of the demo desktop */
 export function DemoToolbar({ canAddFile, onNewFile, onReset, className = "" }: Props) {

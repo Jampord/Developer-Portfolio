@@ -4,6 +4,7 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { ease } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -29,7 +30,7 @@ export function Reveal({ children, className, delay = 0, y = 40 }: RevealProps) 
           y,
           duration: 0.9,
           delay,
-          ease: "power3.out",
+          ease: ease.enter,
           scrollTrigger: {
             trigger: el,
             start: "top 85%",

@@ -30,7 +30,7 @@ const MODES: SkyMode[] = ["clock", "theme"];
 const SKY: HeroSkyPref[] = ["on", "off"];
 
 const pill =
-  "whitespace-nowrap rounded-full px-2 py-0.5 text-muted transition-colors hover:text-foreground aria-pressed:bg-primary aria-pressed:text-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary";
+  "whitespace-nowrap rounded-full px-2 py-0.5 text-muted pressable hover:text-foreground aria-pressed:bg-primary aria-pressed:text-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary";
 
 /** The icon for the weather in Pampanga right now, by day or night */
 function weatherIcon(weather: SkyWeather | null, night: boolean): LucideIcon {
@@ -147,9 +147,9 @@ export function SkyCaption() {
             focusSkySwitch = true;
             setHeroSky("on");
           }}
-          className={`group inline-flex items-center gap-2 rounded-full py-2.5 pl-4 pr-5 text-sm font-medium transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary relative ${surface}`}
+          className={`group inline-flex items-center gap-2 rounded-full py-2.5 pl-4 pr-5 text-sm font-medium pressable hover:-translate-y-0.5 hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary relative ${surface}`}
         >
-          <Cloud aria-hidden="true" className="size-4 text-primary transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-px" />
+          <Cloud aria-hidden="true" className="size-4 text-primary transition-transform duration-(--duration-slow) group-hover:translate-x-0.5 group-hover:-translate-y-px" />
           {sky.turnOn}
         </button>
       </div>

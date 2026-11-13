@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { duration, ease } from "@/lib/motion";
 
 gsap.registerPlugin(useGSAP);
 
@@ -28,8 +29,8 @@ export function Cursor() {
       if (!el || !text) return;
 
       gsap.set(el, { xPercent: -50, yPercent: -50, width: SIZES.default, height: SIZES.default });
-      const xTo = gsap.quickTo(el, "x", { duration: 0.01, ease: "power3.out" });
-      const yTo = gsap.quickTo(el, "y", { duration: 0.01, ease: "power3.out" });
+      const xTo = gsap.quickTo(el, "x", { duration: 0.01, ease: ease.enter });
+      const yTo = gsap.quickTo(el, "y", { duration: 0.01, ease: ease.enter });
 
       let placed = false;
       let current = "";
@@ -44,8 +45,8 @@ export function Cursor() {
           width: SIZES[next],
           height: SIZES[next],
           opacity: next === "hidden" ? 0 : 1,
-          duration: 0.3,
-          ease: "power3.out",
+          duration: duration.slow,
+          ease: ease.enter,
           overwrite: "auto",
         });
       };
@@ -94,11 +95,11 @@ export function Cursor() {
       ref={ring}
       aria-hidden="true"
       data-mode="default"
-      className="group pointer-events-none fixed left-0 top-0 z-100 grid place-items-center rounded-full border border-primary opacity-0 transition-colors duration-200 data-[mode=link]:bg-primary/15 data-[mode=view]:bg-primary"
+      className="group pointer-events-none fixed left-0 top-0 z-100 grid place-items-center rounded-full border border-primary opacity-0 transition-colors duration-(--duration-base) data-[mode=link]:bg-primary/15 data-[mode=view]:bg-primary"
     >
       <span
         ref={label}
-        className="font-mono text-xs font-medium text-background opacity-0 transition-opacity duration-200 group-data-[mode=view]:opacity-100"
+        className="font-mono text-xs font-medium text-background opacity-0 transition-opacity duration-(--duration-base) group-data-[mode=view]:opacity-100"
       />
     </div>
   );

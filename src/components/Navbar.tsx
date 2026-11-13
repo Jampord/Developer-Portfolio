@@ -20,7 +20,7 @@ export function Nav() {
         <ul className="hidden items-center gap-1 md:flex">
           {site.nav.map((item) => (
             <li key={item.href}>
-              <Link href={item.href} className="rounded-full px-4 py-2 text-sm transition-colors hover:bg-foreground/5">
+              <Link href={item.href} className="pressable rounded-full px-4 py-2 text-sm hover:bg-foreground/5">
                 {item.label}
               </Link>
             </li>
@@ -32,7 +32,7 @@ export function Nav() {
           <ThemeToggle />
           <Link
             href="/#contact"
-            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+            className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground pressable hover:opacity-90"
           >
             Let&apos;s talk
           </Link>
