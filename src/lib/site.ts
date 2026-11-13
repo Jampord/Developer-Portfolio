@@ -43,6 +43,8 @@ export const site = {
       interactiveOff: "Turn interactive clouds off",
     },
   },
+  /** The footer's visitor count: "1,234 profile views" */
+  views: { label: "profile views" },
   cvPath: "/john-ford-actub-cv.pdf",
   /** Read out after the logo, which is the link home */
   homeLabel: "home",
