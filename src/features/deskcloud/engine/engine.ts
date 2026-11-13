@@ -39,6 +39,11 @@ export type Engine = {
   setTheme(theme: Theme): void;
   /** Rain streaks (0–1, none with reduced motion) and how much cloud hides the sun or moon (0–1) */
   setWeather(weather: Weather): void;
+  /**
+   * Play the sky's arrival: the sun or moon rises from below into its place. Does nothing with
+   * reduced motion, or while the sky is paused.
+   */
+  enter(): void;
   /** On: stop the loop and draw a settled scene once per change */
   setReducedMotion(on: boolean): void;
   pause(): void;
@@ -75,6 +80,8 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   /** Seconds the loop has run, for the falling rain */
   let elapsed = 0;
   let reducedMotion = false;
+  /** True once the sky has been laid out at a real size, so there is a position worth keeping */
+  let laidOut = false;
   let paused = false;
   let destroyed = false;
 
@@ -94,10 +101,15 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
 
   /** Fresh seeded layout for the current size, settled so the first paint already avoids the icons */
   function layout() {
+    // While the sky is running, the sun or moon keeps its place and eases to the new one, so
+    // weather arriving a moment after the sky is switched on can't cut its rise short
+    const from = laidOut && loop.running ? { x: accents.orb.x, y: accents.orb.y, visibility: accents.orb.visibility } : null;
     const rng = mulberry32(seed);
     clouds = createClouds(size, field, theme, rng);
     accents = createAccents(size, field, theme, rng, placement);
     settle();
+    if (from) Object.assign(accents.orb, from);
+    laidOut = size.width > 0 && size.height > 0;
   }
 
   function settle() {
@@ -117,6 +129,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
       fog: weather.fog,
       wind: weather.wind,
       time: elapsed,
+      still: reducedMotion,
     });
   }
 
@@ -230,6 +243,12 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
         modeT = modeTarget;
         draw();
       }
+    },
+
+    enter() {
+      if (destroyed || !loop.running) return;
+      // It keeps its target, so the usual easing carries it up from under the horizon
+      accents.orb.y = size.height + accents.orb.radius * 2;
     },
 
     setReducedMotion(on) {

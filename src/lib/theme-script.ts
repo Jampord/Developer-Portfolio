@@ -12,6 +12,12 @@ export const HERO_SKY_OFF_ATTR = "data-hero-sky-off";
 /** Set on <html> for a moment after a visitor turns the sky on, to play its reveal */
 export const HERO_SKY_REVEAL_ATTR = "data-hero-sky-reveal";
 
+/** Set on <html> for the moment the sky takes to fade out after a visitor turns it off */
+export const HERO_SKY_LEAVING_ATTR = "data-hero-sky-leaving";
+
+/** Set on <html> once a visitor has used the sky switch, so what replaces it appears without the intro's delay */
+export const HERO_SKY_TOGGLED_ATTR = "data-hero-sky-toggled";
+
 /**
  * Runs before first paint: in clock mode, set the theme from the Pampanga clock so the page never
  * flashes the other one. next-themes reads the same "theme" key when it starts, so it agrees.

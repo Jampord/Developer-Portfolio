@@ -477,17 +477,141 @@ body {
   display: none;
 }
 
-/* Turning the sky on: it brightens in as the clouds drift into place, then the icons pop in one by one */
+/* The bank of cloud you fly through when the sky is switched on or off (SkyFlight.tsx). It is not
+   drawn at all until the switch is used, and it fades out toward the page at the bottom the same
+   way the sky does. */
+.sky-flight {
+  display: none;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 10rem), transparent);
+}
+.sky-flight::before {
+  /* A thin veil behind the puffs, so no sky shows through the gaps while you are inside the cloud */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--puff);
+  opacity: 0;
+}
+.sky-flight-puff {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    var(--puff-light) 0%,
+    var(--puff) 58%,
+    color-mix(in srgb, var(--puff-shadow) 70%, transparent) 84%,
+    transparent 100%
+  );
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* Turning the sky on: you come up out of the cloud. It closes round you for an instant, then
+   streams past on every side and thins away, and the open sky is there, still settling toward
+   you. The icons pop in one by one once you are clear. */
 @media (prefers-reduced-motion: no-preference) {
   @keyframes sky-reveal {
     from {
       opacity: 0;
-      transform: translateX(-3%) scale(1.04);
+      transform: scale(1.07);
+    }
+    35% {
+      opacity: 1;
     }
     to {
       opacity: 1;
       transform: none;
     }
+  }
+  /* Both ways you are flying forward, so cloud always comes from the middle of the view and
+     spreads outward as it nears you (the offsets are worked out per puff in SkyFlight.tsx).
+
+     Out of the cloud: you start inside it, already close, and what is left streams past and off
+     the edges. */
+  @keyframes cloud-part {
+    0% {
+      opacity: 0;
+      transform: scale(0.94);
+    }
+    20% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--far-x), var(--far-y)) scale(2.1);
+    }
+  }
+  @keyframes veil-part {
+    0% {
+      opacity: 0;
+    }
+    20%,
+    34% {
+      opacity: 1;
+    }
+    66%,
+    100% {
+      opacity: 0;
+    }
+  }
+  /* Into the cloud: it is first seen small and far ahead, grows until it has swallowed the view,
+     holds for a breath while the sky behind it is taken down, and then you are through it and
+     it streams away past you, leaving the plain page. */
+  @keyframes cloud-close {
+    0% {
+      opacity: 0;
+      transform: translate(var(--near-x), var(--near-y)) scale(0.22);
+    }
+    14% {
+      opacity: 0.85;
+    }
+    46%,
+    58% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--far-x), var(--far-y)) scale(2.1);
+    }
+  }
+  @keyframes veil-close {
+    0%,
+    26% {
+      opacity: 0;
+    }
+    46%,
+    58% {
+      opacity: 1;
+    }
+    84%,
+    100% {
+      opacity: 0;
+    }
+  }
+
+  [data-hero-sky-reveal] .sky-flight,
+  [data-hero-sky-leaving] .sky-flight {
+    display: block;
+  }
+  [data-hero-sky-reveal] .sky-flight-puff {
+    animation: cloud-part 1.1s var(--ease-move) var(--lag) both;
+  }
+  [data-hero-sky-reveal] .sky-flight::before {
+    animation: veil-part 1.1s var(--ease-move) both;
+  }
+  [data-hero-sky-leaving] .sky-flight-puff {
+    animation: cloud-close 1.3s var(--ease-move) var(--lag) both;
+  }
+  [data-hero-sky-leaving] .sky-flight::before {
+    animation: veil-close 1.3s var(--ease-move) both;
   }
   @keyframes sky-icon-pop {
     from {
@@ -500,8 +624,36 @@ body {
     }
   }
 
+  /* Turning it off: the sky swells toward you as you fly into the cloud, and the icons drop out
+     one by one. The page takes the sky down once the cloud has closed over it (COVER_MS in
+     hero-sky-pref.ts), and the cloud then thins away. */
+  @keyframes sky-leave {
+    to {
+      transform: scale(1.07);
+    }
+  }
+  @keyframes sky-icon-drop {
+    to {
+      opacity: 0;
+      transform: translateY(10px) scale(0.6);
+    }
+  }
+
   [data-hero-sky-reveal] [data-hero-sky-layer] {
-    animation: sky-reveal 1.2s var(--ease-enter) both;
+    animation: sky-reveal 1.1s var(--ease-enter) both;
+  }
+  [data-hero-sky-leaving] [data-hero-sky-layer] {
+    animation: sky-leave 0.7s var(--ease-move) both;
+  }
+  [data-hero-sky-leaving] [data-hero-sky-icons] li {
+    animation: sky-icon-drop var(--duration-slow) var(--ease-exit) both;
+    animation-delay: calc(var(--icon-i, 0) * var(--stagger));
+  }
+  /* Once the switch has been used, whatever takes its place answers the press straight away
+     instead of waiting for its turn in the page's intro */
+  [data-hero-sky-toggled] [data-hero-fade] {
+    animation-duration: 0.4s;
+    animation-delay: 0s;
   }
   [data-hero-sky-reveal] [data-hero-sky-icons] li {
     animation: sky-icon-pop 0.6s var(--ease-spring-snappy) both;

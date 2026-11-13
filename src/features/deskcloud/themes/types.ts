@@ -93,6 +93,36 @@ export type Theme = {
     size: number;
     lineWidth: number;
     alpha: number;
+    /** Birds that follow each lead bird in a loose V */
+    flock: Range;
+    /** Gap between birds in a flock, as a multiple of the wingspan */
+    spacing: number;
+  };
+
+  /** A hot-air balloon that drifts across the day sky, as they do over Pampanga each February */
+  balloon: {
+    /** Envelope radius as a fraction of the canvas's shorter side, kept within min and max (px) */
+    size: number;
+    minRadius: number;
+    maxRadius: number;
+    /** Drift speed in px/s */
+    speed: Range;
+    /** The band it floats in, as fractions of the canvas height */
+    band: Range;
+    /** How far it bobs up and down, in px */
+    bob: number;
+  };
+
+  /** Shooting stars in the night sky */
+  meteors: {
+    /** One may fall in each stretch of this many seconds */
+    every: number;
+    /** The chance that a stretch has one (0–1) */
+    chance: number;
+    /** How long one lasts, in seconds */
+    duration: number;
+    /** How far it travels, as a fraction of the canvas's shorter side */
+    travel: number;
   };
 
   stars: {

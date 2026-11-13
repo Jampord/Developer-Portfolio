@@ -1,5 +1,5 @@
 import type { Palette, Rgb, Theme } from "../themes/types";
-import type { Accents } from "./accents";
+import { flapStrength, type Accents, type Balloon } from "./accents";
 import { SKY_MID } from "./skyStops";
 import type { Cloud, Size } from "./types";
 
@@ -26,6 +26,8 @@ export type Scene = {
   wind?: number;
   /** Seconds since the scene started, for the falling rain */
   time?: number;
+  /** True when nothing may move (reduced motion): no shooting stars */
+  still?: boolean;
 };
 
 const TAU = Math.PI * 2;
@@ -76,7 +78,8 @@ const css = ([r, g, b]: Rgb, alpha = 1) => `rgb(${r | 0} ${g | 0} ${b | 0} / ${a
 const WHITE: Rgb = [255, 255, 255];
 
 /**
- * Draw one frame: sky gradient → sun's halo → stars → sun/moon → back clouds → front clouds → birds.
+ * Draw one frame: sky gradient → sun's halo → stars → shooting star → sun/moon → back clouds →
+ * front clouds → balloon → birds.
  * Everything is procedural; clouds are stamped from small cached sprites. dpr only scales the backing store.
  */
 export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: Scene): void {
@@ -94,6 +97,8 @@ export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: S
   const sunShown = 1 - (scene.sunHidden ?? 0);
   drawHalo(ctx, accents, palette, (1 - night) * sunShown, theme);
   drawStars(ctx, accents, palette, night);
+  const time = scene.time ?? 0;
+  if (!scene.still) drawMeteor(ctx, size, palette, night * sunShown, time, theme);
   drawOrb(ctx, accents, palette, night, theme, scene.moonPhase ?? null, sunShown, height);
 
   const { backFade } = theme.clouds;
@@ -103,11 +108,14 @@ export function renderScene(ctx: CanvasRenderingContext2D, dpr: number, scene: S
     cloudLight: mixRgb(palette.cloudLight, palette.skyBottom, backFade),
     cloudShadow: mixRgb(palette.cloudShadow, palette.skyBottom, backFade),
   };
-  const time = scene.time ?? 0;
   const strike = findStrike(time, scene.lightning ?? 0);
   drawClouds(ctx, clouds, "back", backPalette, accents, theme, width);
   if (strike) drawBolt(ctx, size, strike);
   drawClouds(ctx, clouds, "front", palette, accents, theme, width);
+  // In front of the clouds, like the birds: on a grey day it would otherwise never be seen.
+  // It stays down in bad weather.
+  const fair = Math.max(0, 1 - 3 * (scene.rain ?? 0) - 3 * (scene.lightning ?? 0) - 1.5 * (scene.fog ?? 0));
+  drawBalloon(ctx, accents.balloon, palette, (1 - night) * fair);
   if (strike) drawStrikeGlow(ctx, size, strike);
   drawRain(ctx, size, palette, scene.rain ?? 0, time, scene.wind ?? 1);
   drawFog(ctx, size, palette, scene.fog ?? 0);
@@ -565,22 +573,166 @@ function drawStrikeGlow(ctx: CanvasRenderingContext2D, size: Size, { seed, brigh
   ctx.fillRect(x - r, y - r, r * 2, r * 2);
 }
 
-/** Small "V" birds; the wing tips rise and fall with the flap phase. Day only. */
+/**
+ * One bird seen from afar: two wings that arc out from the body and bend at the wrist. While the
+ * flock beats, the tips sweep from below the body to well above it; while it glides they are held
+ * out, slightly raised. Smaller birds are drawn finer and fainter, so a flock has some depth.
+ */
+function drawBird(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  half: number,
+  phase: number,
+  strength: number,
+  color: Rgb,
+  alpha: number,
+  lineWidth: number,
+) {
+  if (alpha < 0.02) return;
+  // Tip height: a steady glide pose, plus the beat scaled by how hard the flock is flapping
+  const tip = half * (0.3 + 0.62 * strength * Math.sin(phase));
+  // The wrist leads the tip a little, which is what makes a wingbeat read as a beat
+  const wrist = half * (0.34 + 0.3 * strength * Math.sin(phase + 0.9));
+  ctx.strokeStyle = css(color, alpha);
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  ctx.moveTo(x - half, y - tip);
+  ctx.quadraticCurveTo(x - half * 0.5, y - wrist - half * 0.22, x, y);
+  ctx.quadraticCurveTo(x + half * 0.5, y - wrist - half * 0.22, x + half, y - tip);
+  ctx.stroke();
+}
+
+/** Small flocks in a loose V, each bird on its own beat, flapping for a while and then gliding. Day only. */
 function drawBirds(ctx: CanvasRenderingContext2D, { birds }: Accents, palette: Palette, day: number, theme: Theme) {
   if (day < 0.01) return;
   const { size, lineWidth, alpha } = theme.birds;
-  ctx.lineWidth = lineWidth;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   for (const bird of birds) {
-    const a = alpha * bird.visibility * day;
-    if (a < 0.02) continue;
-    const lift = size * (0.45 + 0.35 * Math.sin(bird.phase));
-    ctx.strokeStyle = css(palette.bird, a);
-    ctx.beginPath();
-    ctx.moveTo(bird.x - size, bird.y - lift);
-    ctx.lineTo(bird.x, bird.y);
-    ctx.lineTo(bird.x + size, bird.y - lift);
-    ctx.stroke();
+    const strength = flapStrength(bird.glide);
+    // A glide sinks a touch and a beat lifts, so the flock rides gently up and down
+    const ride = Math.sin(bird.glide) * size * 0.35;
+    const y = bird.y - ride;
+    for (const mate of bird.flock) {
+      const a = alpha * mate.visibility * day * (0.55 + 0.45 * mate.scale);
+      drawBird(ctx, bird.x + mate.dx, y + mate.dy, size * mate.scale, mate.phase, strength, palette.bird, a, lineWidth * mate.scale);
+    }
+    drawBird(ctx, bird.x, y, size * bird.scale, bird.phase, strength, palette.bird, alpha * bird.visibility * day, lineWidth * bird.scale);
   }
+}
+
+// The balloon wears the site's own colours: the amber of the sun and the green of the frame
+const BALLOON_AMBER: Rgb = [246, 185, 59];
+const BALLOON_CREAM: Rgb = [255, 246, 226];
+const BALLOON_GREEN: Rgb = [13, 147, 115];
+const BASKET: Rgb = [112, 78, 50];
+/** Five gores seen on a round envelope: the middle one faces you, so it is the widest */
+const GORES: readonly (readonly [from: number, to: number, color: Rgb])[] = [
+  [-1, -0.81, BALLOON_AMBER],
+  [-0.81, -0.31, BALLOON_CREAM],
+  [-0.31, 0.31, BALLOON_GREEN],
+  [0.31, 0.81, BALLOON_CREAM],
+  [0.81, 1, BALLOON_AMBER],
+];
+
+/** A small hot-air balloon: a striped envelope tapering to its mouth, two ropes and a basket. Day only. */
+function drawBalloon(ctx: CanvasRenderingContext2D, balloon: Balloon, palette: Palette, shown: number) {
+  const alpha = shown * balloon.visibility;
+  const { x, y, radius: r } = balloon;
+  if (alpha < 0.02 || r < 1) return;
+  const mouthY = y + r * 1.24;
+  const mouth = r * 0.26;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // Ropes and basket first, so the envelope's mouth sits over the rope ends
+  const basketW = r * 0.44;
+  const basketH = r * 0.3;
+  const basketY = y + r * 1.62;
+  ctx.strokeStyle = css(BASKET, 0.9);
+  ctx.lineWidth = Math.max(0.6, r * 0.04);
+  ctx.beginPath();
+  ctx.moveTo(x - mouth, mouthY);
+  ctx.lineTo(x - basketW / 2, basketY);
+  ctx.moveTo(x + mouth, mouthY);
+  ctx.lineTo(x + basketW / 2, basketY);
+  ctx.stroke();
+  ctx.fillStyle = css(BASKET);
+  ctx.fillRect(x - basketW / 2, basketY, basketW, basketH);
+
+  ctx.beginPath();
+  ctx.moveTo(x - mouth, mouthY);
+  ctx.bezierCurveTo(x - r * 0.5, y + r * 0.96, x - r, y + r * 0.56, x - r, y);
+  ctx.arc(x, y, r, Math.PI, 0);
+  ctx.bezierCurveTo(x + r, y + r * 0.56, x + r * 0.5, y + r * 0.96, x + mouth, mouthY);
+  ctx.closePath();
+  ctx.clip();
+
+  for (const [from, to, color] of GORES) {
+    ctx.fillStyle = css(color);
+    // A hair of overlap, so no sky shows through between two gores
+    ctx.fillRect(x + from * r - 0.5, y - r, (to - from) * r + 1, r * 2.3);
+  }
+  // Lit from the upper left, like the clouds around it, and falling into shade on the far side
+  const shade = ctx.createLinearGradient(x - r, y, x + r, y);
+  shade.addColorStop(0, css(WHITE, 0.28));
+  shade.addColorStop(0.45, css(WHITE, 0));
+  shade.addColorStop(1, css(palette.bird, 0.3));
+  ctx.fillStyle = shade;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2.3);
+
+  ctx.restore();
+}
+
+export type Meteor = { x: number; y: number; tailX: number; tailY: number; brightness: number };
+
+/**
+ * The shooting star in flight at this moment, if there is one. Like the rain and the lightning it
+ * is a pure function of time: each stretch of seconds may hold one, decided by a hash.
+ */
+export function meteorAt(time: number, { width, height }: Size, theme: Theme): Meteor | null {
+  const { every, chance, duration, travel } = theme.meteors;
+  if (every <= duration || width <= 0 || height <= 0) return null;
+  const slot = Math.floor(time / every);
+  if (hash(slot, 21) >= chance) return null;
+
+  const age = time - slot * every - hash(slot, 22) * (every - duration);
+  if (age <= 0 || age >= duration) return null;
+  const p = age / duration;
+
+  // It falls shallowly to the left or the right, slowing as it burns out
+  const angle = ((16 + 16 * hash(slot, 23)) * Math.PI) / 180;
+  const dir = hash(slot, 24) < 0.5 ? -1 : 1;
+  const reach = Math.min(width, height) * travel;
+  const gone = reach * (1 - (1 - p) * (1 - p));
+  const tail = reach * 0.4 * Math.sin(Math.PI * p);
+  const ux = Math.cos(angle) * dir;
+  const uy = Math.sin(angle);
+  const x = width * (0.2 + 0.6 * hash(slot, 25)) + ux * gone;
+  const y = height * (0.06 + 0.2 * hash(slot, 26)) + uy * gone;
+  return { x, y, tailX: x - ux * tail, tailY: y - uy * tail, brightness: Math.sin(Math.PI * p) ** 0.6 };
+}
+
+/** A thin streak that brightens toward its head. Night only, and only when the sky is clear enough to see it. */
+function drawMeteor(ctx: CanvasRenderingContext2D, size: Size, palette: Palette, night: number, time: number, theme: Theme) {
+  if (night < 0.5) return;
+  const meteor = meteorAt(time, size, theme);
+  if (!meteor) return;
+  const alpha = night * meteor.brightness;
+  const streak = ctx.createLinearGradient(meteor.tailX, meteor.tailY, meteor.x, meteor.y);
+  streak.addColorStop(0, css(palette.star, 0));
+  streak.addColorStop(1, css(palette.star, alpha));
+  ctx.strokeStyle = streak;
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(meteor.tailX, meteor.tailY);
+  ctx.lineTo(meteor.x, meteor.y);
+  ctx.stroke();
+  ctx.fillStyle = css(palette.star, alpha);
+  ctx.beginPath();
+  ctx.arc(meteor.x, meteor.y, 1.5, 0, TAU);
+  ctx.fill();
 }
