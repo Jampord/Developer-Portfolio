@@ -62,7 +62,11 @@ export const sky: Theme = {
     haloAlpha: 0.22,
   },
 
-  birds: { count: [2, 3], speed: [28, 42], size: 7, lineWidth: 1.6, alpha: 0.85 },
+  birds: { count: [2, 3], speed: [28, 42], size: 7, lineWidth: 1.6, alpha: 0.85, flock: [1, 4], spacing: 1.5 },
+
+  balloon: { size: 0.03, minRadius: 11, maxRadius: 22, speed: [5, 8], band: [0.24, 0.5], bob: 3 },
+
+  meteors: { every: 9, chance: 0.65, duration: 0.8, travel: 0.34 },
 
   stars: { density: 7, band: 0.75, radius: [0.6, 1.5], twinkle: [0.8, 2.2] },
 };

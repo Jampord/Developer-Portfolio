@@ -34,8 +34,17 @@ describe("motion tokens", () => {
     expect(stagger).toBeLessThanOrEqual(0.06);
   });
 
+  it("tells a linear easing from a linear gradient", () => {
+    const easing = /cubic-bezier|\blinear\b(?!-gradient)/;
+    expect("transition: opacity 200ms linear;").toMatch(easing);
+    expect("animation: spin 1s linear infinite;").toMatch(easing);
+    expect("transition: scale 200ms cubic-bezier(0.2, 0, 0, 1);").toMatch(easing);
+    expect("mask-image: linear-gradient(to bottom, #000, transparent);").not.toMatch(easing);
+  });
+
   it("leaves no hand-written curve outside the token block", () => {
     const outsideTokens = css.replace(/--ease-[\w-]+:\s*cubic-bezier\([^)]*\)/g, "");
-    expect(outsideTokens).not.toMatch(/cubic-bezier|\blinear\b/);
+    // A linear easing, that is: "linear-gradient" is a colour ramp and has nothing to do with motion
+    expect(outsideTokens).not.toMatch(/cubic-bezier|\blinear\b(?!-gradient)/);
   });
 });

@@ -11,6 +11,7 @@ import {
   SKY_OBSTACLES_EVENT,
   SKY_ORB_BLOCKER_ATTR,
 } from "@/lib/hero-sky";
+import { isHeroSkyRevealing } from "@/lib/hero-sky-pref";
 
 /** Space between the navbar and the top of the sun or moon, in px */
 const ORB_GAP = 16;
@@ -28,6 +29,8 @@ export function HeroSky() {
   const [obstacles, setObstacles] = useState<readonly Rect[]>([]);
   const [orbTop, setOrbTop] = useState(0);
   const [orbBlockers, setOrbBlockers] = useState<readonly Rect[]>([]);
+  // Just switched on by a visitor: the sun or moon rises into place. Not on an ordinary page load.
+  const [entrance] = useState(isHeroSkyRevealing);
 
   // The real sky over Pampanga: colours, weather, moon phase, and where the sun or moon is
   const live = useLiveSky();
@@ -91,6 +94,7 @@ export function HeroSky() {
         weather={live.weather}
         orbArc={live.orbArc}
         orbBlockers={orbBlockers}
+        entrance={entrance}
         className="block h-full w-full"
       />
       <div className={HERO_SKY_FADE_CLASS} />

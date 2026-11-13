@@ -33,6 +33,8 @@ type Props = {
   horizon?: number;
   /** What the sun or moon fades out behind, relative to the canvas; leave out for every obstacle */
   orbBlockers?: readonly Rect[] | null;
+  /** Play the sky's arrival once it is first drawn (the sun or moon rises into place) */
+  entrance?: boolean;
   className?: string;
 };
 
@@ -49,9 +51,12 @@ export function DeskcloudCanvas({
   orbArc = null,
   horizon = 0,
   orbBlockers = null,
+  entrance = false,
   className = "",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  /** Read once, when the engine starts: the arrival only ever plays for the first draw */
+  const entranceRef = useRef(entrance);
   const engineRef = useRef<Engine | null>(null);
   const { resolvedTheme } = useTheme();
 
@@ -62,9 +67,14 @@ export function DeskcloudCanvas({
     const engine = createEngine(canvas, { theme: sky, mode: currentMode() });
     engineRef.current = engine;
 
+    let arrived = !entranceRef.current;
     const resize = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect;
       engine.setSize(width, height, Math.min(window.devicePixelRatio || 1, MAX_DPR));
+      if (!arrived && width > 0 && height > 0) {
+        arrived = true;
+        engine.enter();
+      }
     });
     resize.observe(canvas);
 

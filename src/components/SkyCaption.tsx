@@ -18,7 +18,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { placeTime, skyTime } from "@/lib/sky-clock";
-import { setHeroSky, useHeroSky, type HeroSkyPref } from "@/lib/hero-sky-pref";
+import { setHeroSky, useHeroSky, useHeroSkyChoice, type HeroSkyPref } from "@/lib/hero-sky-pref";
 import { setSkyMode, useSkyMode, type SkyMode } from "@/lib/sky-mode";
 import { site } from "@/lib/site";
 import { useNow } from "@/lib/use-now";
@@ -63,6 +63,8 @@ const LEAKS: (CSSProperties & Record<`--${string}`, string>)[] = [
 
 /** Set when the big button turns the sky on, so focus lands on the switch that replaced it */
 let focusSkySwitch = false;
+/** And the other way round: set when the switch turns the sky off, so focus lands on the big button */
+let focusSkyButton = false;
 
 const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -117,13 +119,21 @@ export function SkyCaption() {
   const now = useNow(30_000);
   const mode = useSkyMode();
   const pref = useHeroSky();
+  // The switch shows the press at once; the sky itself takes a moment to fade out
+  const choice = useHeroSkyChoice();
   const { sky } = site;
   const onSwitch = useRef<HTMLButtonElement>(null);
+  const turnOn = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (pref !== "on" || !focusSkySwitch) return;
-    focusSkySwitch = false;
-    onSwitch.current?.focus({ preventScroll: true });
+    if (pref === "on" && focusSkySwitch) {
+      focusSkySwitch = false;
+      onSwitch.current?.focus({ preventScroll: true });
+    }
+    if (pref === "off" && focusSkyButton) {
+      focusSkyButton = false;
+      turnOn.current?.focus({ preventScroll: true });
+    }
   }, [pref]);
 
   // With the sky off (the default), one button turns it on
@@ -141,6 +151,7 @@ export function SkyCaption() {
           </svg>
         </span>
         <button
+          ref={turnOn}
           type="button"
           title={sky.turnOnHint}
           onClick={() => {
@@ -182,8 +193,12 @@ export function SkyCaption() {
               key={s}
               ref={s === "on" ? onSwitch : undefined}
               type="button"
-              aria-pressed={pref === s}
-              onClick={() => setHeroSky(s)}
+              aria-pressed={choice === s}
+              onClick={(e) => {
+                // Keyboard users keep their place: focus follows to the button that replaces this switch
+                if (s === "off" && e.currentTarget.matches(":focus-visible")) focusSkyButton = true;
+                setHeroSky(s);
+              }}
               className={pill}
             >
               {sky.sky[s]}

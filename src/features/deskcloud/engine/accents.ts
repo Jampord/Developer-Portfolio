@@ -48,6 +48,18 @@ export function clearOf(rects: readonly Rect[], { x, y }: Vec2, radius: number):
   });
 }
 
+/** A bird that follows a lead bird, at a fixed offset behind and to one side of it */
+export type Wingmate = {
+  dx: number;
+  dy: number;
+  /** Size relative to the theme's bird size */
+  scale: number;
+  /** Its own wing-flap phase, so the flock never beats in step */
+  phase: number;
+  visibility: number;
+};
+
+/** The lead bird of a small flock */
 export type Bird = {
   x: number;
   y: number;
@@ -57,6 +69,26 @@ export type Bird = {
   /** Wing-flap phase in radians */
   phase: number;
   /** 0–1: birds fade out as they pass close to an icon */
+  visibility: number;
+  /** Size relative to the theme's bird size */
+  scale: number;
+  /** Where the flock is in its flap-then-glide cycle, in radians */
+  glide: number;
+  flock: Wingmate[];
+};
+
+/** A hot-air balloon drifting across the day sky */
+export type Balloon = {
+  x: number;
+  y: number;
+  /** The height it floats at; it bobs around this and eases to a new one when icons move */
+  baseY: number;
+  speed: number;
+  /** Bob phase in radians */
+  phase: number;
+  /** Envelope radius in px */
+  radius: number;
+  /** 0–1: it fades out as it passes close to an icon */
   visibility: number;
 };
 
@@ -71,11 +103,19 @@ export type Star = {
   visible: boolean;
 };
 
-export type Accents = { orb: Orb; birds: Bird[]; stars: Star[] };
+export type Accents = { orb: Orb; birds: Bird[]; stars: Star[]; balloon: Balloon };
 
 const LANE_GAP = 48;
 const FLAP_RATE = 9; // radians per second
+/** One flap-then-glide cycle takes about seven seconds */
+const GLIDE_RATE = 0.9;
+const BOB_RATE = 0.6;
 const TAU = Math.PI * 2;
+
+/** How hard a flock is flapping right now: 1 while beating, close to 0 while it glides */
+export function flapStrength(glide: number): number {
+  return clamp(0.55 + 1.2 * Math.sin(glide), 0.12, 1);
+}
 
 /**
  * The roomiest spot in the top third of the sky, kept a little in from the edges.
@@ -201,6 +241,53 @@ function updateStarVisibility(stars: Star[], field: Field) {
   for (const s of stars) s.visible = field.sample(s.x, s.y) > 0;
 }
 
+/** Followers in a loose V behind the lead bird: alternating sides, each rank a little further back */
+function createFlock(theme: Theme, rng: () => number): Wingmate[] {
+  const gap = theme.birds.size * 2 * theme.birds.spacing;
+  return Array.from({ length: intBetween(rng, theme.birds.flock) }, (_, i) => {
+    const rank = Math.floor(i / 2) + 1;
+    const side = i % 2 ? 1 : -1;
+    return {
+      dx: -rank * gap * (0.85 + 0.3 * rng()),
+      dy: side * rank * gap * 0.5 * (0.8 + 0.4 * rng()),
+      scale: 0.72 + 0.26 * rng(),
+      phase: rng() * TAU,
+      visibility: 1,
+    };
+  });
+}
+
+/** How far the last bird of a flock trails behind its lead */
+const trail = (bird: Bird) => bird.flock.reduce((far, mate) => Math.max(far, -mate.dx), 0);
+
+/** A bird shows fully with room around it and fades out as it nears an icon */
+const birdRoom = (field: Field, x: number, y: number) => clamp((field.sample(x, y) - 8) / 32, 0, 1);
+
+export function balloonRadius(size: Size, theme: Theme): number {
+  const { size: share, minRadius, maxRadius } = theme.balloon;
+  return clamp(Math.min(size.width, size.height) * share, minRadius, maxRadius);
+}
+
+/** The height in the balloon's band with the most room across the sky */
+function balloonLane(field: Field, size: Size, theme: Theme): number {
+  const [from, to] = theme.balloon.band;
+  const step = Math.max(field.grid.cellSize, 1);
+  let best = size.height * from;
+  let bestScore = -1;
+  for (let y = size.height * from; y <= size.height * to; y += step) {
+    let total = 0;
+    for (let x = step / 2; x < size.width; x += step * 4) total += Math.min(field.sample(x, y), 400);
+    if (total > bestScore) {
+      bestScore = total;
+      best = y;
+    }
+  }
+  return best;
+}
+
+/** The balloon needs clear sky from the top of its envelope to under its basket */
+const balloonRoom = (field: Field, b: Balloon) => clamp((field.sample(b.x, b.y + b.radius * 0.7) - b.radius * 2) / 40, 0, 1);
+
 export function createAccents(
   size: Size,
   field: Field,
@@ -220,7 +307,28 @@ export function createAccents(
     speed: between(rng, theme.birds.speed),
     phase: rng() * TAU,
     visibility: 1,
+    scale: 1,
+    glide: 0,
+    flock: [] as Wingmate[],
   }));
+  const stars = createStars(size, field, theme, rng);
+
+  // Drawn from the generator after everything that was already seeded, so existing skies keep their look
+  for (const bird of birds) {
+    bird.scale = 0.9 + 0.25 * rng();
+    bird.glide = rng() * TAU;
+    bird.flock = createFlock(theme, rng);
+  }
+  const baseY = balloonLane(field, size, theme);
+  const balloon: Balloon = {
+    x: rng() * size.width,
+    y: baseY,
+    baseY,
+    speed: between(rng, theme.balloon.speed),
+    phase: rng() * TAU,
+    radius: balloonRadius(size, theme),
+    visibility: 1,
+  };
 
   return {
     orb: {
@@ -234,7 +342,8 @@ export function createAccents(
       visibility: hidden || !clear ? 0 : 1,
     },
     birds,
-    stars: createStars(size, field, theme, rng),
+    stars,
+    balloon,
   };
 }
 
@@ -258,6 +367,9 @@ export function updateAccentTargets(
   const birds = [...accents.birds].sort((a, b) => a.laneY - b.laneY);
   birds.forEach((bird, i) => (bird.laneY = lanes[i]));
 
+  accents.balloon.radius = balloonRadius(size, theme);
+  accents.balloon.baseY = balloonLane(field, size, theme);
+
   updateStarVisibility(accents.stars, field);
 }
 
@@ -272,13 +384,27 @@ export function stepAccents(accents: Accents, dt: number, { field, size, theme }
   const span = theme.birds.size * 2;
   for (const bird of accents.birds) {
     bird.x += bird.speed * dt;
-    if (bird.x - span > size.width) bird.x = -span;
+    // The whole flock leaves before the lead comes back in on the other side
+    if (bird.x - span - trail(bird) > size.width) bird.x = -span;
     bird.y += (bird.laneY - bird.y) * ease;
     bird.phase = (bird.phase + FLAP_RATE * dt) % TAU;
+    bird.glide = (bird.glide + GLIDE_RATE * dt) % TAU;
 
-    const target = clamp((field.sample(bird.x, bird.y) - 8) / 32, 0, 1);
-    bird.visibility += (target - bird.visibility) * Math.min(1, dt * 6);
+    const fade = Math.min(1, dt * 6);
+    bird.visibility += (birdRoom(field, bird.x, bird.y) - bird.visibility) * fade;
+    for (const mate of bird.flock) {
+      mate.phase = (mate.phase + FLAP_RATE * dt) % TAU;
+      mate.visibility += (birdRoom(field, bird.x + mate.dx, bird.y + mate.dy) - mate.visibility) * fade;
+    }
   }
+
+  const { balloon } = accents;
+  const reach = balloon.radius * 3;
+  balloon.x += balloon.speed * dt;
+  if (balloon.x - reach > size.width) balloon.x = -reach;
+  balloon.phase = (balloon.phase + BOB_RATE * dt) % TAU;
+  balloon.y += (balloon.baseY + Math.sin(balloon.phase) * theme.balloon.bob - balloon.y) * ease;
+  balloon.visibility += (balloonRoom(field, balloon) - balloon.visibility) * Math.min(1, dt * 3);
 
   for (const star of accents.stars) star.phase = (star.phase + star.speed * dt) % TAU;
 }
@@ -291,8 +417,13 @@ export function settleAccents(accents: Accents, field?: Field): void {
   orb.visibility = shownAt(orb);
   for (const bird of accents.birds) {
     bird.y = bird.laneY;
-    if (field) bird.visibility = clamp((field.sample(bird.x, bird.y) - 8) / 32, 0, 1);
+    if (!field) continue;
+    bird.visibility = birdRoom(field, bird.x, bird.y);
+    for (const mate of bird.flock) mate.visibility = birdRoom(field, bird.x + mate.dx, bird.y + mate.dy);
   }
+  const { balloon } = accents;
+  balloon.y = balloon.baseY;
+  if (field) balloon.visibility = balloonRoom(field, balloon);
   if (field) updateStarVisibility(accents.stars, field);
 }
 

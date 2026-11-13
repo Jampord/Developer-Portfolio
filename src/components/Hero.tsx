@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 import { HeroIcons } from "./HeroIcons";
 import { HeroSkyLayer } from "./HeroSkyLayer";
 import { SkyCaption } from "./SkyCaption";
+import { SkyFlight } from "./SkyFlight";
 
 const nameLines = ["John Ford", "Actub"];
 
@@ -29,6 +30,7 @@ export function Hero() {
     // Full width, so the sky runs edge to edge; the content keeps the page's column
     <section className="relative isolate">
       <HeroSkyLayer />
+      <SkyFlight />
 
       <div className="mx-auto flex min-h-[88svh] w-[calc(100%-2rem)] max-w-6xl flex-col justify-center gap-10 pb-28 pt-12 md:pt-20">
         <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-6">
