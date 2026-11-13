@@ -29,7 +29,8 @@ export const site = {
     },
     switchLabel: "Day and night follow",
     skyLabel: "Sky",
-    sky: { on: "On", off: "Off" },
+    /** Whether the clouds part around the page's content, or drift on behind it */
+    interactiveLabel: "Interactive clouds",
     turnOn: "Turn on the sky",
     turnOnHint: "Show the live sky over San Fernando, Pampanga",
     modes: { clock: "Pampanga clock", theme: "My theme" },
@@ -38,6 +39,8 @@ export const site = {
       toTheme: "Stop following the Pampanga clock",
       skyOff: "Turn the live sky off",
       skyOn: "Turn the live sky on",
+      interactiveOn: "Turn interactive clouds on",
+      interactiveOff: "Turn interactive clouds off",
     },
   },
   cvPath: "/john-ford-actub-cv.pdf",
