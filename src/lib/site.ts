@@ -41,6 +41,8 @@ export const site = {
     },
   },
   cvPath: "/john-ford-actub-cv.pdf",
+  /** Read out after the logo, which is the link home */
+  homeLabel: "home",
   /** The button that shows the section links on small screens */
   menu: { open: "Open menu", close: "Close menu" },
   nav: [

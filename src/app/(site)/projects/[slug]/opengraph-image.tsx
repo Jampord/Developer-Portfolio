@@ -37,7 +37,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           padding: 64,
         }}
       >
-        <div style={{ display: "flex", color: "#0D9373", fontSize: 30 }}>{"// case study"}</div>
+        <div style={{ display: "flex", color: "#0B7E63", fontSize: 30 }}>{"// case study"}</div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           <div
@@ -63,7 +63,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               width: 56,
               height: 56,
               borderRadius: 16,
-              background: "#0D9373",
+              background: "#0B7E63",
               color: "#F3F8F5",
               fontSize: 24,
               fontWeight: 800,

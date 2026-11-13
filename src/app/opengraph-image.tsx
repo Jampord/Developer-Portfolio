@@ -36,7 +36,7 @@ export default function Image() {
               width: 96,
               height: 96,
               borderRadius: 28,
-              background: "#0D9373",
+              background: "#0B7E63",
               color: "#F3F8F5",
               fontSize: 44,
               fontWeight: 800,
@@ -44,7 +44,7 @@ export default function Image() {
           >
             {site.shortName}
           </div>
-          <div style={{ display: "flex", color: "#0D9373", fontSize: 30 }}>{`// ${site.title}`}</div>
+          <div style={{ display: "flex", color: "#0B7E63", fontSize: 30 }}>{`// ${site.title}`}</div>
         </div>
 
         <div

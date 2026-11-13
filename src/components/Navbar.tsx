@@ -12,11 +12,15 @@ export function Nav() {
         aria-label="Main"
         className="relative flex items-center justify-between rounded-full border border-foreground/10 bg-card/80 py-2 pl-2 pr-2 backdrop-blur-md"
       >
-        <HomeLink aria-label={`${site.name}, home`} className="tap-target flex items-center gap-2 pr-2">
+        <HomeLink className="tap-target flex items-center gap-2 pr-2">
           <span className="grid size-9 place-items-center rounded-xl bg-primary font-display text-sm font-extrabold text-background">
             {site.shortName}
           </span>
           <span className="hidden font-mono text-xs text-muted sm:block">{site.title}</span>
+          {/* Added to what is shown, not in place of it: a spoken name has to contain the visible one */}
+          <span className="sr-only">
+            , {site.name}, {site.homeLabel}
+          </span>
         </HomeLink>
 
         <ul className="hidden items-center gap-1 md:flex">

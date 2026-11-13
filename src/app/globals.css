@@ -7,8 +7,10 @@
   --background: #f3f8f5;
   --foreground: #0a1f19;
   --card: #ffffff;
-  --muted: #5b7a70;
-  --primary: #0d9373;
+  /* As light as it can be while small text in it still clears 4.5:1 on the page and on tinted panels */
+  --muted: #547067;
+  /* Dark enough that small text in it, and small pale text on it, both clear 4.5:1 against the page */
+  --primary: #0b7e63;
   --frame: #0a6b55;
   /* The sun's amber, for calls to action and highlights; a little deeper here so it holds up on the pale page */
   --accent: #f6b93b;
