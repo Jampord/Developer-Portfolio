@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
@@ -9,6 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { ease } from "@/lib/motion";
 import { featuredProjects, otherProjects, SCREENSHOT_QUALITY, type Project } from "@/data/projects";
+import { projectMorph } from "@/lib/project-morph";
 import { isPortrait, splitCover } from "@/lib/screenshots";
 import { PhoneScreens } from "./PhoneScreens";
 import { Reveal } from "./Reveal";
@@ -40,27 +41,29 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       className="group relative h-full overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 card-lift pressable hover:border-primary/50 md:p-6"
     >
       {cover.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-foreground/10">
-          {isPhoneCover ? (
-            // Same box as a desktop cover; the phones are cropped at the bottom
-            <PhoneScreens
-              images={cover}
-              sizes="(min-width: 1152px) 300px, (min-width: 640px) 28vw, 40vw"
-              className="work-cover aspect-video px-4 pt-4 transition-transform duration-(--duration-slow) group-hover:scale-[1.02] sm:px-8 sm:pt-6 lg:aspect-auto lg:h-[40vh]"
-              phoneClassName="w-[40%] max-w-[300px] sm:w-[28%]"
-            />
-          ) : (
-            <Image
-              src={cover[0].src}
-              alt={cover[0].alt}
-              width={cover[0].width}
-              height={cover[0].height}
-              sizes="(min-width: 1152px) 1100px, 100vw"
-              quality={SCREENSHOT_QUALITY}
-              className="work-cover aspect-video w-full object-cover object-top transition-transform duration-(--duration-slow) group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
-            />
-          )}
-        </div>
+        <ViewTransition {...projectMorph.cover(project.slug, isPhoneCover)}>
+          <div className="overflow-hidden rounded-2xl border border-foreground/10">
+            {isPhoneCover ? (
+              // Same box as a desktop cover; the phones are cropped at the bottom
+              <PhoneScreens
+                images={cover}
+                sizes="(min-width: 1152px) 300px, (min-width: 640px) 28vw, 40vw"
+                className="work-cover aspect-video px-4 pt-4 transition-transform duration-(--duration-slow) group-hover:scale-[1.02] sm:px-8 sm:pt-6 lg:aspect-auto lg:h-[40vh]"
+                phoneClassName="w-[40%] max-w-[300px] sm:w-[28%]"
+              />
+            ) : (
+              <Image
+                src={cover[0].src}
+                alt={cover[0].alt}
+                width={cover[0].width}
+                height={cover[0].height}
+                sizes="(min-width: 1152px) 1100px, 100vw"
+                quality={SCREENSHOT_QUALITY}
+                className="work-cover aspect-video w-full object-cover object-top transition-transform duration-(--duration-slow) group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
+              />
+            )}
+          </div>
+        </ViewTransition>
       )}
 
       <div className="mt-6 grid gap-4 md:grid-cols-[auto_1fr_auto] md:items-start md:gap-8">

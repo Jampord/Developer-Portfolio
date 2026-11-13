@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { HomeLink } from "./HomeLink";
 import { ThemeToggle } from "./ThemeToggle";
 import { NavMenu } from "./NavMenu";
 import { PaletteTrigger } from "./PaletteTrigger";
@@ -11,12 +12,12 @@ export function Nav() {
         aria-label="Main"
         className="relative flex items-center justify-between rounded-full border border-foreground/10 bg-card/80 py-2 pl-2 pr-2 backdrop-blur-md"
       >
-        <Link href="/" aria-label={`${site.name}, home`} className="tap-target flex items-center gap-2 pr-2">
+        <HomeLink aria-label={`${site.name}, home`} className="tap-target flex items-center gap-2 pr-2">
           <span className="grid size-9 place-items-center rounded-xl bg-primary font-display text-sm font-extrabold text-background">
             {site.shortName}
           </span>
           <span className="hidden font-mono text-xs text-muted sm:block">{site.title}</span>
-        </Link>
+        </HomeLink>
 
         <ul className="hidden items-center gap-1 md:flex">
           {site.nav.map((item) => (

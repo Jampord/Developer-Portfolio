@@ -1,9 +1,11 @@
+import { ViewTransition } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, ExternalLink } from "lucide-react";
 import { getProject, projects, SCREENSHOT_QUALITY } from "@/data/projects";
+import { projectMorph } from "@/lib/project-morph";
 import { groupGallery, isPortrait, splitCover } from "@/lib/screenshots";
 import { site } from "@/lib/site";
 import { PhoneScreens } from "@/components/PhoneScreens";
@@ -92,28 +94,30 @@ export default async function ProjectPage({ params }: Props) {
       </header>
 
       {cover.length > 0 && (
-        <div className="mt-12 overflow-hidden rounded-3xl border border-foreground/10">
-          {isPhoneCover ? (
-            <PhoneScreens
-              images={cover}
-              sizes="(min-width: 1152px) 320px, (min-width: 640px) 30vw, 45vw"
-              priority
-              className="px-4 py-8 sm:px-10 sm:py-12"
-              phoneClassName="w-[45%] max-w-[320px] sm:w-[30%]"
-            />
-          ) : (
-            <Image
-              src={cover[0].src}
-              alt={cover[0].alt}
-              width={cover[0].width}
-              height={cover[0].height}
-              sizes="(min-width: 1152px) 1100px, 100vw"
-              quality={SCREENSHOT_QUALITY}
-              priority
-              className="w-full"
-            />
-          )}
-        </div>
+        <ViewTransition {...projectMorph.cover(project.slug, isPhoneCover)}>
+          <div className="mt-12 overflow-hidden rounded-3xl border border-foreground/10">
+            {isPhoneCover ? (
+              <PhoneScreens
+                images={cover}
+                sizes="(min-width: 1152px) 320px, (min-width: 640px) 30vw, 45vw"
+                priority
+                className="px-4 py-8 sm:px-10 sm:py-12"
+                phoneClassName="w-[45%] max-w-[320px] sm:w-[30%]"
+              />
+            ) : (
+              <Image
+                src={cover[0].src}
+                alt={cover[0].alt}
+                width={cover[0].width}
+                height={cover[0].height}
+                sizes="(min-width: 1152px) 1100px, 100vw"
+                quality={SCREENSHOT_QUALITY}
+                priority
+                className="w-full"
+              />
+            )}
+          </div>
+        </ViewTransition>
       )}
 
       <dl className="mt-12 grid gap-6 border-y border-foreground/10 py-8 sm:grid-cols-2 md:grid-cols-3">

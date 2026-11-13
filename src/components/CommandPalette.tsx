@@ -22,6 +22,7 @@ import {
 import { projects } from "@/data/projects";
 import { site } from "@/lib/site";
 import { OPEN_PALETTE_EVENT } from "@/lib/command-palette";
+import { announceNavigation } from "@/lib/navigate";
 import { setHeroSky, useHeroSky } from "@/lib/hero-sky-pref";
 import { setSkyMode, useSkyMode } from "@/lib/sky-mode";
 
@@ -109,6 +110,8 @@ export function CommandPalette() {
 
   const go = (href: string) => {
     setOpen(false);
+    // So a section you are already "on" still scrolls into place, as its nav link would
+    announceNavigation(href);
     router.push(href);
   };
 

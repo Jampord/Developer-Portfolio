@@ -58,6 +58,9 @@
 
   --press-scale: 0.97;
 
+  /* The one long transition: a project card becoming its case study */
+  --duration-morph: 450ms;
+
   /* The smallest area that takes a tap, however small the control looks */
   --tap-min: 44px;
 }
@@ -267,6 +270,42 @@
   }
 }
 
+/* A project card opening into its case study, and closing back into the card. The cover travels
+   from where it sat on one page to where it sits on the other while the rest changes behind it.
+   Browsers without view transitions just change page.
+   With reduced motion nothing travels: the cover fades from one place to the other. */
+::view-transition {
+  /* Clicks made while it plays still reach the page */
+  pointer-events: none;
+}
+::view-transition-group(.morph-cover),
+::view-transition-group(.morph-phones) {
+  animation-duration: var(--duration-morph);
+  animation-timing-function: var(--ease-move);
+}
+/* A screenshot cover is the same picture on both pages: the card shows the top of it and the page
+   shows all of it. So neither copy is faded or stretched. Both stay at full strength, pinned to
+   the top at the frame's width, and the frame simply opens or closes over them. Cross-fading two
+   copies at slightly different sizes is what made the picture shimmer on the way. */
+::view-transition-group(.morph-cover),
+::view-transition-group(.morph-phones) {
+  overflow: clip;
+  border-radius: 1.5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(.morph-cover),
+  ::view-transition-new(.morph-cover) {
+    animation: none;
+    opacity: 1;
+    mix-blend-mode: normal;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*) {
+    animation: none !important;
+  }
+}
+
 /* Small controls: an invisible box, centred on the element, makes the area that takes a tap at
    least 44px each way without changing how the control looks. */
 @utility tap-target {
@@ -383,6 +422,12 @@
    the panel stays put and SelectedWork.tsx moves one card at a time.
    Keep this query identical to DECK_QUERY in SelectedWork.tsx */
 @media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+  /* A link to the section lands where the deck takes over the screen, so the whole panel is in
+     view: the section's top padding (6rem) is scrolled past instead of left showing. This
+     overrides the scroll-mt-28 the plain list uses. */
+  #work {
+    scroll-margin-top: -6rem;
+  }
   .work-run {
     /* One screen to look at the deck, plus a stretch of scroll for each shuffle */
     height: calc(100vh + var(--work-steps, 3) * 70vh);
