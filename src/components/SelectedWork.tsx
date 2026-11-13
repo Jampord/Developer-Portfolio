@@ -74,9 +74,11 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         <p className="font-mono text-sm text-primary">{pad(index + 1)}</p>
         <div className="space-y-3">
           <h3 className="font-display text-3xl font-bold md:text-4xl">
+            {/* The whole card is this link. Its overlay sits above everything else in the card, so a
+                part that moves on hover (the arrow turns) can't come up over it and swallow the click. */}
             <Link
               href={`/projects/${project.slug}`}
-              className="after:absolute after:inset-0 focus-visible:outline-2 focus-visible:outline-primary"
+              className="after:absolute after:inset-0 after:z-10 focus-visible:outline-2 focus-visible:outline-primary"
             >
               {project.title}
             </Link>
