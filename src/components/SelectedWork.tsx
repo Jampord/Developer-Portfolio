@@ -12,6 +12,7 @@ import { featuredProjects, otherProjects, SCREENSHOT_QUALITY, type Project } fro
 import { setLanding, takeProject } from "@/lib/landing";
 import { projectMorph } from "@/lib/project-morph";
 import { isPortrait, splitCover } from "@/lib/screenshots";
+import { site } from "@/lib/site";
 import { PhoneScreens } from "./PhoneScreens";
 import { Reveal } from "./Reveal";
 
@@ -41,7 +42,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
   return (
     <article
-      data-cursor="View"
+      title={site.tooltips.card(project.title)}
       className="group relative h-full overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 card-lift pressable hover:border-primary/50 md:p-6"
     >
       {cover.length > 0 && (

@@ -49,6 +49,11 @@ export const site = {
     /** Shown on hover, so the number says what it is */
     hint: "Visitors, counted once a day since November 2026",
   },
+  /** Hover tooltips: what a project card or a hero icon does when clicked */
+  tooltips: {
+    card: (title: string) => `View the ${title} case study`,
+    icon: (title: string) => `Open ${title}, or drag it around the sky`,
+  },
   cvPath: "/john-ford-actub-cv.pdf",
   /** Read out after the logo, which is the link home */
   homeLabel: "home",
