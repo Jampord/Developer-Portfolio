@@ -39,7 +39,7 @@ function makePuffs(rng: () => number, count: number, baseRadius: number): Puff[]
   return radii.map((r, i) => {
     const restDx = xs[i] - centre;
     const restDy = baseline - r;
-    return { restDx, restDy, r, dx: restDx, dy: restDy, scale: 1, vdx: 0, vdy: 0, vscale: 0 };
+    return { restDx, restDy, r, dx: restDx, dy: restDy, scale: 1, vdx: 0, vdy: 0, vscale: 0, presence: 1 };
   });
 }
 

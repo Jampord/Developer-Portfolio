@@ -26,6 +26,8 @@ export type Puff = {
   vdx: number;
   vdy: number;
   vscale: number;
+  /** 0–1: how far the puff has condensed out of clear sky (see presence.ts) */
+  presence: number;
 };
 
 export type Cloud = {

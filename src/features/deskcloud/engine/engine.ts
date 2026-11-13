@@ -11,6 +11,7 @@ import { createClouds, settleClouds, stepClouds, type CloudContext } from "./clo
 import { buildField, type Field } from "./field";
 import { buildGrid } from "./grid";
 import { createLoop } from "./loop";
+import { setPresence, startFade, stepPresence, type Fade } from "./presence";
 import { mulberry32 } from "./random";
 import { lerpPalette, renderScene } from "./renderer";
 import type { Palette, Theme } from "../themes/types";
@@ -44,6 +45,11 @@ export type Engine = {
    * reduced motion, or while the sky is paused.
    */
   enter(): void;
+  /**
+   * Condense the clouds out of clear sky (true) or evaporate them (false), from wherever they are
+   * now. Instant with reduced motion or while the sky is paused.
+   */
+  setPresent(present: boolean): void;
   /** On: stop the loop and draw a settled scene once per change */
   setReducedMotion(on: boolean): void;
   pause(): void;
@@ -84,6 +90,9 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
   let laidOut = false;
   let paused = false;
   let destroyed = false;
+  /** Whether the clouds are meant to be there, and the condensing or evaporating under way, if any */
+  let present = true;
+  let fade: Fade | null = null;
 
   const loop = createLoop(frame);
 
@@ -106,6 +115,9 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
     const from = laidOut && loop.running ? { x: accents.orb.x, y: accents.orb.y, visibility: accents.orb.visibility } : null;
     const rng = mulberry32(seed);
     clouds = createClouds(size, field, theme, rng);
+    // New clouds join a fade under way at its point in time; otherwise they're simply there or not
+    if (fade) stepPresence(clouds, fade, elapsed);
+    else setPresence(clouds, present ? 1 : 0);
     accents = createAccents(size, field, theme, rng, placement);
     settle();
     if (from) Object.assign(accents.orb, from);
@@ -138,6 +150,7 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
     const sim = context();
     stepClouds(clouds, dt, sim);
     stepAccents(accents, dt, sim);
+    if (fade && stepPresence(clouds, fade, elapsed)) fade = null;
     if (modeT !== modeTarget) {
       const step = dt / theme.modeFade;
       modeT = modeT < modeTarget ? Math.min(modeTarget, modeT + step) : Math.max(modeTarget, modeT - step);
@@ -249,6 +262,23 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
       if (destroyed || !loop.running) return;
       // It keeps its target, so the usual easing carries it up from under the horizon
       accents.orb.y = size.height + accents.orb.radius * 2;
+      // …and the clouds condense out of clear sky. Drawn now, so not even one frame shows them whole.
+      present = true;
+      setPresence(clouds, 0);
+      fade = startFade(clouds, 1, elapsed);
+      draw();
+    },
+
+    setPresent(next) {
+      if (destroyed || next === present) return;
+      present = next;
+      if (!loop.running) {
+        fade = null;
+        setPresence(clouds, present ? 1 : 0);
+        draw();
+        return;
+      }
+      fade = startFade(clouds, present ? 1 : 0, elapsed);
     },
 
     setReducedMotion(on) {
@@ -257,6 +287,8 @@ export function createEngine(canvas: HTMLCanvasElement, { theme: initialTheme, s
       sync();
       if (on) {
         modeT = modeTarget;
+        fade = null;
+        setPresence(clouds, present ? 1 : 0);
         applyNow();
       }
     },

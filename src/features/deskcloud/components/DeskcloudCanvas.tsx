@@ -35,6 +35,8 @@ type Props = {
   orbBlockers?: readonly Rect[] | null;
   /** Play the sky's arrival once it is first drawn (the sun or moon rises into place) */
   entrance?: boolean;
+  /** False evaporates the clouds (e.g. just before the sky is taken down); true condenses them back */
+  present?: boolean;
   className?: string;
 };
 
@@ -52,6 +54,7 @@ export function DeskcloudCanvas({
   horizon = 0,
   orbBlockers = null,
   entrance = false,
+  present = true,
   className = "",
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -131,6 +134,10 @@ export function DeskcloudCanvas({
   useEffect(() => {
     engineRef.current?.setOrbBlockers(orbBlockers);
   }, [orbBlockers]);
+
+  useEffect(() => {
+    engineRef.current?.setPresent(present);
+  }, [present]);
 
   const { rain, sunHidden, lightning, fog, wind } = weather;
   useEffect(() => {
