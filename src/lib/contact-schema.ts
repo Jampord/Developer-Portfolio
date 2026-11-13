@@ -2,7 +2,13 @@ import { z } from "zod";
 
 export const contactSchema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(80, "Please keep your name under 80 characters"),
-  email: z.string().trim().max(120, "Please keep your email under 120 characters").email("Please enter a valid email"),
+  // Stray spaces and capitals are tidied up instead of being rejected
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(120, "Please keep your email under 120 characters")
+    .email("Please enter a valid email"),
   message: z
     .string()
     .trim()

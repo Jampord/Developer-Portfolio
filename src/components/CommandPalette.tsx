@@ -33,9 +33,12 @@ function PaletteItem({
   value,
   hint,
   keywords,
+  celebrate = false,
   onSelect,
 }: {
   icon: LucideIcon;
+  /** Pop the icon in, for the moment an action has just worked */
+  celebrate?: boolean;
   label: string;
   value: string;
   hint?: string;
@@ -49,7 +52,7 @@ function PaletteItem({
       onSelect={onSelect}
       className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary"
     >
-      <Icon className="size-4 shrink-0" aria-hidden="true" />
+      <Icon className={`size-4 shrink-0 ${celebrate ? "success-pop" : ""}`} aria-hidden="true" />
       <span className="flex-1">{label}</span>
       {hint && <span className="font-mono text-xs text-muted">{hint}</span>}
     </Command.Item>
@@ -221,6 +224,7 @@ export function CommandPalette() {
                 label={copyLabel}
                 value="copy email"
                 keywords={["contact", "mail"]}
+                celebrate={copy === "done"}
                 onSelect={copyEmail}
               />
               <PaletteItem
