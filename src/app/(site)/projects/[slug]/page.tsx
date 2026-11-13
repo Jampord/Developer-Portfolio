@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowUpRight, ExternalLink } from "lucide-react";
 import { getProject, projects, SCREENSHOT_QUALITY } from "@/data/projects";
 import { projectMorph } from "@/lib/project-morph";
+import { WORK_RETURN_ATTR } from "@/lib/landing";
 import { groupGallery, isPortrait, splitCover } from "@/lib/screenshots";
 import { site } from "@/lib/site";
 import { PhoneScreens } from "@/components/PhoneScreens";
@@ -51,6 +52,7 @@ export default async function ProjectPage({ params }: Props) {
     <article className="mx-auto w-[calc(100%-2rem)] max-w-6xl pb-12 pt-12">
       <Link
         href="/#work"
+        {...{ [WORK_RETURN_ATTR]: project.slug }}
         className="tap-target inline-flex items-center gap-2 font-mono text-sm text-muted transition-colors hover:text-primary"
       >
         <ArrowLeft className="settle nudge-left size-4" aria-hidden="true" />

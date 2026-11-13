@@ -292,6 +292,20 @@
   overflow: clip;
   border-radius: 1.5rem;
 }
+/* Phone covers are laid out differently on the two pages (three cropped phones on the card, the
+   same three in full on the page), so overlaying or cross-fading the two copies shows six ghostly
+   phones. Only the arriving copy is shown, filling the frame from the top as the frame moves. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(.morph-phones) {
+    display: none;
+  }
+  ::view-transition-new(.morph-phones) {
+    animation: none;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+}
 @media (prefers-reduced-motion: no-preference) {
   ::view-transition-old(.morph-cover),
   ::view-transition-new(.morph-cover) {

@@ -30,7 +30,11 @@ export function Nav() {
         </ul>
 
         <div className="flex items-center gap-2">
-          <PaletteTrigger />
+          {/* The first thing to go on the narrowest phones: there is no keyboard shortcut to hint at
+              there, and the menu button already reaches every section */}
+          <div className="contents max-[359px]:hidden">
+            <PaletteTrigger />
+          </div>
           <ThemeToggle />
           <Link
             href="/#contact"
