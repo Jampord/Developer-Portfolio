@@ -17,7 +17,7 @@ export function PaletteTrigger() {
       onClick={() => window.dispatchEvent(new Event(OPEN_PALETTE_EVENT))}
       aria-label="Open command palette"
       aria-keyshortcuts="Control+K Meta+K"
-      className="flex h-9 items-center gap-2 rounded-full border border-foreground/10 px-3 text-sm text-muted pressable hover:bg-foreground/5 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="tap-target flex h-9 items-center gap-2 rounded-full border border-foreground/10 px-3 text-sm text-muted pressable hover:bg-foreground/5 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
       <Search className="size-4" aria-hidden="true" />
       <kbd className="hidden font-mono text-xs lg:inline">{isMac ? "⌘ K" : "Ctrl K"}</kbd>

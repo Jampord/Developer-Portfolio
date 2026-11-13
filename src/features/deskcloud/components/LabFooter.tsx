@@ -11,17 +11,17 @@ export function LabFooter() {
         <nav aria-label={t.linksLabel}>
           <ul className="flex gap-6">
             <li>
-              <Link className="hover:text-primary" href="/">
+              <Link className="tap-target hover:text-primary" href="/">
                 {t.links.portfolio}
               </Link>
             </li>
             <li>
-              <Link className="hover:text-primary" href="/projects/deskcloud">
+              <Link className="tap-target hover:text-primary" href="/projects/deskcloud">
                 {t.links.caseStudy}
               </Link>
             </li>
             <li>
-              <a className="hover:text-primary" href={site.links.github} target="_blank" rel="noopener noreferrer">
+              <a className="tap-target hover:text-primary" href={site.links.github} target="_blank" rel="noopener noreferrer">
                 {t.links.github}
               </a>
             </li>

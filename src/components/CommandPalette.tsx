@@ -47,7 +47,7 @@ function PaletteItem({
       value={value}
       keywords={keywords}
       onSelect={onSelect}
-      className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary"
+      className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-sm data-[selected=true]:bg-primary/10 data-[selected=true]:text-primary"
     >
       <Icon className="size-4 shrink-0" aria-hidden="true" />
       <span className="flex-1">{label}</span>

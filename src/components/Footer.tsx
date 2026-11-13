@@ -9,17 +9,17 @@ export function Footer() {
         </p>
         <ul className="flex gap-6">
           <li>
-            <a className="hover:text-primary" href={site.links.github}>
+            <a className="tap-target hover:text-primary" href={site.links.github}>
               GitHub
             </a>
           </li>
           <li>
-            <a className="hover:text-primary" href={site.links.linkedin}>
+            <a className="tap-target hover:text-primary" href={site.links.linkedin}>
               LinkedIn
             </a>
           </li>
           <li>
-            <a className="hover:text-primary" href={`mailto:${site.email}`}>
+            <a className="tap-target hover:text-primary" href={`mailto:${site.email}`}>
               Email
             </a>
           </li>
