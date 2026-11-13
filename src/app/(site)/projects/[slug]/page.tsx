@@ -67,7 +67,7 @@ export default async function ProjectPage({ params }: Props) {
               target="_blank"
               rel="noopener noreferrer"
               href={project.links.live}
-              className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+              className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground pressable hover:opacity-90"
             >
               Live site <ExternalLink className="size-4" aria-hidden="true" />
             </a>
@@ -78,7 +78,7 @@ export default async function ProjectPage({ params }: Props) {
               href={r.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
+              className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium pressable hover:bg-foreground/5"
             >
               {r.label} <ExternalLink className="size-4" aria-hidden="true" />
             </a>
@@ -221,7 +221,7 @@ export default async function ProjectPage({ params }: Props) {
       {next && (
         <Link
           href={`/projects/${next.slug}`}
-          className="group mt-20 flex items-center justify-between rounded-3xl border border-foreground/10 p-8 transition-colors hover:border-primary/50"
+          className="group mt-20 flex items-center justify-between rounded-3xl border border-foreground/10 p-8 pressable hover:border-primary/50"
         >
           <span>
             <span className="font-mono text-sm text-primary">{"//"} next project</span>

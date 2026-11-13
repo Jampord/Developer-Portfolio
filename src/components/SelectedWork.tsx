@@ -7,6 +7,7 @@ import { ArrowUpRight } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { ease } from "@/lib/motion";
 import { featuredProjects, otherProjects, SCREENSHOT_QUALITY, type Project } from "@/data/projects";
 import { isPortrait, splitCover } from "@/lib/screenshots";
 import { PhoneScreens } from "./PhoneScreens";
@@ -36,7 +37,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   return (
     <article
       data-cursor="View"
-      className="group relative h-full overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 transition-colors hover:border-primary/50 md:p-6"
+      className="group relative h-full overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 pressable hover:border-primary/50 md:p-6"
     >
       {cover.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-foreground/10">
@@ -45,7 +46,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             <PhoneScreens
               images={cover}
               sizes="(min-width: 1152px) 300px, (min-width: 640px) 28vw, 40vw"
-              className="work-cover aspect-video px-4 pt-4 transition-transform duration-500 group-hover:scale-[1.02] sm:px-8 sm:pt-6 lg:aspect-auto lg:h-[40vh]"
+              className="work-cover aspect-video px-4 pt-4 transition-transform duration-(--duration-slow) group-hover:scale-[1.02] sm:px-8 sm:pt-6 lg:aspect-auto lg:h-[40vh]"
               phoneClassName="w-[40%] max-w-[300px] sm:w-[28%]"
             />
           ) : (
@@ -56,7 +57,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
               height={cover[0].height}
               sizes="(min-width: 1152px) 1100px, 100vw"
               quality={SCREENSHOT_QUALITY}
-              className="work-cover aspect-video w-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
+              className="work-cover aspect-video w-full object-cover object-top transition-transform duration-(--duration-slow) group-hover:scale-[1.02] lg:aspect-auto lg:h-[40vh]"
             />
           )}
         </div>
@@ -119,7 +120,7 @@ export function SelectedWork() {
         // One shuffle per step of scroll: the top card is drawn off to the side and slipped in at
         // the back, while the rest of the deck moves up one place. Only that one card travels.
         const shuffle = gsap.timeline({
-          defaults: { ease: "power2.inOut" },
+          defaults: { ease: ease.move },
           scrollTrigger: {
             trigger: run,
             start: "top top",

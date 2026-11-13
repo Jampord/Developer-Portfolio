@@ -90,7 +90,7 @@ export function Hero() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/#work"
-                className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground pressable hover:opacity-90"
               >
                 View my work
                 <ArrowDown className="size-4" aria-hidden="true" />
@@ -98,7 +98,7 @@ export function Hero() {
               <a
                 href={site.cvPath}
                 download
-                className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium transition-colors hover:bg-foreground/5"
+                className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium pressable hover:bg-foreground/5"
               >
                 Download CV
                 <Download className="size-4" aria-hidden="true" />

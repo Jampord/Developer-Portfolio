@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { duration, ms } from "@/lib/motion";
 import { en } from "../content/en";
 import type { DesktopIconData } from "../icons";
 import { ICON_SIZE, type Direction } from "../slots";
@@ -64,7 +65,7 @@ export function DesktopIcon({ icon, x, y, dragging, wiggle, ...handlers }: Props
   useEffect(() => {
     if (!wiggle || !tile.current) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    tile.current.animate(WIGGLE, { duration: 450, easing: "ease-in-out" });
+    tile.current.animate(WIGGLE, { duration: ms(duration.slow), easing: "ease-in-out" });
   }, [wiggle]);
 
   const finish = (e: React.PointerEvent<HTMLButtonElement>, canOpen: boolean) => {
@@ -137,7 +138,7 @@ export function DesktopIcon({ icon, x, y, dragging, wiggle, ...handlers }: Props
         if (pointerType.current !== "mouse") e.preventDefault();
       }}
       className={`absolute left-0 top-0 flex touch-none select-none flex-col items-center gap-1.5 rounded-xl px-1 pt-2 [-webkit-touch-callout:none] hover:bg-white/15 focus-visible:bg-white/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
-        dragging ? "z-10 cursor-grabbing bg-white/20" : "motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out"
+        dragging ? "z-10 cursor-grabbing bg-white/20" : "motion-safe:transition-transform motion-safe:duration-(--duration-base) motion-safe:ease-out"
       }`}
       style={{
         width: ICON_SIZE.width,
