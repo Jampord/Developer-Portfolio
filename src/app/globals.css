@@ -18,6 +18,9 @@
   --puff: #eef4fb;
   --puff-shadow: #a6bcd8;
   --wind: rgb(13 147 115 / 0.55);
+  /* Cards: a tight contact shadow under a soft wide one, and a deeper pair once lifted */
+  --shadow-card: 0 1px 2px rgb(10 31 25 / 0.05), 0 6px 16px -4px rgb(10 31 25 / 0.07);
+  --shadow-card-hover: 0 2px 4px rgb(10 31 25 / 0.06), 0 16px 32px -8px rgb(10 31 25 / 0.16);
 }
 
 .dark {
@@ -33,6 +36,8 @@
   --puff: #54648c;
   --puff-shadow: #2e3a5e;
   --wind: rgb(46 224 176 / 0.5);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 16px -4px rgb(0 0 0 / 0.35);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.35), 0 16px 32px -8px rgb(0 0 0 / 0.55);
 }
 
 /* Motion: the one place durations and easings are defined. src/lib/motion.ts mirrors these for
@@ -105,6 +110,95 @@
       scale: none;
       opacity: 0.7;
     }
+  }
+}
+
+/* Cards sit a little off the page. One you can open also rises a few pixels under the pointer and
+   its shadow deepens; pair it with `pressable` so the lift is eased. */
+@utility card-depth {
+  box-shadow: var(--shadow-card);
+}
+@utility card-lift {
+  box-shadow: var(--shadow-card);
+
+  @media (hover: hover) {
+    &:hover {
+      box-shadow: var(--shadow-card-hover);
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      &:hover {
+        translate: 0 -3px;
+      }
+    }
+  }
+}
+
+/* Icons inside links, buttons and cards: they follow their container a beat late and settle with
+   a slight overshoot. A `nudge-*` icon also leans the way its link goes while it is hovered. */
+.settle {
+  transition:
+    translate var(--duration-base) var(--ease-spring-gentle) var(--stagger),
+    rotate var(--duration-base) var(--ease-spring-gentle) var(--stagger);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :is(a, button):hover .nudge-down {
+    translate: 0 2px;
+  }
+  :is(a, button):hover .nudge-left {
+    translate: -3px 0;
+  }
+  :is(a, button):hover .nudge-out {
+    translate: 2px -2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settle {
+    transition: none;
+  }
+}
+
+/* The command palette: the dimmed page fades while the panel rises into place from a touch
+   smaller, and it leaves a little faster than it came. Browsers without @starting-style or
+   discrete transitions just show and hide it. With reduced motion it only fades. */
+.palette {
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-exit),
+    display var(--duration-fast) allow-discrete,
+    overlay var(--duration-fast) allow-discrete;
+}
+.palette-panel {
+  translate: 0 8px;
+  scale: 0.98;
+  transition:
+    translate var(--duration-fast) var(--ease-exit),
+    scale var(--duration-fast) var(--ease-exit);
+}
+.palette[open] {
+  opacity: 1;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-enter);
+}
+.palette[open] .palette-panel {
+  translate: none;
+  scale: none;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-enter);
+}
+@starting-style {
+  .palette[open] {
+    opacity: 0;
+  }
+  .palette[open] .palette-panel {
+    translate: 0 8px;
+    scale: 0.98;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .palette-panel,
+  .palette[open] .palette-panel {
+    translate: none;
+    scale: none;
   }
 }
 

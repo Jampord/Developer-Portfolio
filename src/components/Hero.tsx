@@ -93,7 +93,7 @@ export function Hero() {
                 className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground pressable hover:opacity-90"
               >
                 View my work
-                <ArrowDown className="size-4" aria-hidden="true" />
+                <ArrowDown className="settle nudge-down size-4" aria-hidden="true" />
               </Link>
               <a
                 href={site.cvPath}
@@ -101,7 +101,7 @@ export function Hero() {
                 className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium pressable hover:bg-foreground/5"
               >
                 Download CV
-                <Download className="size-4" aria-hidden="true" />
+                <Download className="settle nudge-down size-4" aria-hidden="true" />
               </a>
             </div>
           </div>

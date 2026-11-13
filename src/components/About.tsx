@@ -21,7 +21,7 @@ export function About() {
         <Reveal delay={0.15}>
           <div className="grid gap-4 sm:grid-cols-2">
             {skillGroups.map((group) => (
-              <div key={group.title} className="rounded-3xl border border-foreground/10 bg-card p-6">
+              <div key={group.title} className="card-depth rounded-3xl border border-foreground/10 bg-card p-6">
                 <h3 className="font-mono text-xs text-primary">
                   {"//"} {group.title.toLowerCase()}
                 </h3>

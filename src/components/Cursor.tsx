@@ -9,6 +9,10 @@ gsap.registerPlugin(useGSAP);
 
 type Mode = "default" | "link" | "view" | "hidden";
 
+/** The ring is drawn once at this size, in px, and scaled from there (see the size-10 class below) */
+const RING = 40;
+
+/** How wide the ring looks in each mode, in px */
 const SIZES: Record<Mode, number> = {
   default: 24,
   link: 40,
@@ -17,6 +21,7 @@ const SIZES: Record<Mode, number> = {
 };
 
 export function Cursor() {
+  const root = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLDivElement>(null);
   const label = useRef<HTMLSpanElement>(null);
 
@@ -24,11 +29,12 @@ export function Cursor() {
     const mm = gsap.matchMedia();
 
     mm.add("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)", () => {
-      const el = ring.current;
+      const el = root.current;
+      const circle = ring.current;
       const text = label.current;
-      if (!el || !text) return;
+      if (!el || !circle || !text) return;
 
-      gsap.set(el, { xPercent: -50, yPercent: -50, width: SIZES.default, height: SIZES.default });
+      gsap.set(circle, { scale: SIZES.default / RING });
       const xTo = gsap.quickTo(el, "x", { duration: 0.01, ease: ease.enter });
       const yTo = gsap.quickTo(el, "y", { duration: 0.01, ease: ease.enter });
 
@@ -41,14 +47,10 @@ export function Cursor() {
         current = key;
         el.dataset.mode = next;
         text.textContent = labelText;
-        gsap.to(el, {
-          width: SIZES[next],
-          height: SIZES[next],
-          opacity: next === "hidden" ? 0 : 1,
-          duration: duration.slow,
-          ease: ease.enter,
-          overwrite: "auto",
-        });
+        // Only scale and opacity change, so resizing the ring never triggers layout
+        const tween = { duration: duration.slow, ease: ease.enter, overwrite: "auto" } as const;
+        gsap.to(circle, { scale: SIZES[next] / RING, ...tween });
+        gsap.to(el, { opacity: next === "hidden" ? 0 : 1, ...tween });
       };
 
       const onMove = (e: PointerEvent) => {
@@ -91,15 +93,21 @@ export function Cursor() {
   });
 
   return (
+    // A point that follows the pointer; the ring and its label are centred on it
     <div
-      ref={ring}
+      ref={root}
       aria-hidden="true"
       data-mode="default"
-      className="group pointer-events-none fixed left-0 top-0 z-100 grid place-items-center rounded-full border border-primary opacity-0 transition-colors duration-(--duration-base) data-[mode=link]:bg-primary/15 data-[mode=view]:bg-primary"
+      className="group pointer-events-none fixed left-0 top-0 z-100 size-0 opacity-0"
     >
+      {/* The border is drawn a little heavy because the ring is usually scaled down */}
+      <div
+        ref={ring}
+        className="absolute -left-5 -top-5 size-10 rounded-full border-[1.5px] border-primary transition-colors duration-(--duration-base) group-data-[mode=link]:bg-primary/15 group-data-[mode=view]:bg-primary"
+      />
       <span
         ref={label}
-        className="font-mono text-xs font-medium text-background opacity-0 transition-opacity duration-(--duration-base) group-data-[mode=view]:opacity-100"
+        className="absolute left-0 top-0 -translate-x-1/2 -translate-y-1/2 font-mono text-xs font-medium text-background opacity-0 transition-opacity duration-(--duration-base) group-data-[mode=view]:opacity-100"
       />
     </div>
   );

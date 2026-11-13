@@ -17,7 +17,7 @@ export function Features() {
           return (
             <li key={item.title}>
               <Reveal delay={i * 0.08} className="h-full">
-                <div className="h-full rounded-3xl border border-foreground/10 bg-card p-6">
+                <div className="card-depth h-full rounded-3xl border border-foreground/10 bg-card p-6">
                   <span className="grid size-11 place-items-center rounded-2xl bg-primary/10 text-primary">
                     <Glyph className="size-5" aria-hidden="true" />
                   </span>

@@ -27,14 +27,14 @@ export function DeskcloudHero() {
             className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground pressable hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {t.primaryCta}
-            <ArrowDown className="size-4" aria-hidden="true" />
+            <ArrowDown className="settle nudge-down size-4" aria-hidden="true" />
           </a>
           <Link
             href="/projects/deskcloud"
             className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium pressable hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {t.secondaryCta}
-            <ArrowUpRight className="size-4" aria-hidden="true" />
+            <ArrowUpRight className="settle nudge-out size-4" aria-hidden="true" />
           </Link>
         </div>
       </div>
