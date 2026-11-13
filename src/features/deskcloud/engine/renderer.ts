@@ -1,5 +1,6 @@
 import type { Palette, Rgb, Theme } from "../themes/types";
 import { flapStrength, type Accents, type Balloon } from "./accents";
+import { presenceScale } from "./presence";
 import { SKY_MID } from "./skyStops";
 import type { Cloud, Size } from "./types";
 
@@ -423,8 +424,10 @@ function drawClouds(
     for (const i of puffOrder(cloud)) {
       const p = cloud.puffs[i];
       // A puff squeezed to a fraction of its size reads as a stray dot, so it fades out instead
-      const fade = Math.min(1, Math.max(0, (p.scale - SQUEEZE_HIDE) / (SQUEEZE_FULL - SQUEEZE_HIDE)));
-      const r = p.r * p.scale * spread;
+      const squeeze = Math.min(1, Math.max(0, (p.scale - SQUEEZE_HIDE) / (SQUEEZE_FULL - SQUEEZE_HIDE)));
+      // A puff still condensing (or evaporating) is smaller and thinner
+      const fade = squeeze * p.presence;
+      const r = p.r * p.scale * presenceScale(p.presence) * spread;
       if (fade <= 0 || r < 0.5) continue;
       ctx.globalAlpha = opacity * fade;
       ctx.drawImage(image, cloud.x + p.dx - r, cloud.y + p.dy - r, r * 2, r * 2);

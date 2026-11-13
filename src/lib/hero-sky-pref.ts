@@ -16,15 +16,17 @@ const CHANGE_EVENT = "herosky:change";
 
 /** Long enough for the sky and the last icon to finish appearing (see globals.css) */
 const REVEAL_MS = 2500;
-/** Turning it off flies you into a cloud. The sky is taken down once the cloud has closed over it… */
-const COVER_MS = 680;
-/** …and the cloud has thinned away by this point (see cloud-close in globals.css) */
-const FLIGHT_MS = 1500;
+/**
+ * Turning it off: the clouds evaporate (in the engine, about 0.9 s) and the sky's colour fades
+ * after them (sky-leave in globals.css); then the sky is taken down. With reduced motion it is a
+ * short cross-fade instead.
+ */
+const LEAVE_MS = 1100;
+const LEAVE_REDUCED_MS = 200;
 
 let revealTimer: ReturnType<typeof setTimeout> | undefined;
 let leaveTimer: ReturnType<typeof setTimeout> | undefined;
-let clearTimer: ReturnType<typeof setTimeout> | undefined;
-/** True while the sky has been turned off but the cloud has not closed over it yet */
+/** True while the sky has been turned off but is still fading away */
 let leaving = false;
 
 /** What the visitor chose, the moment they chose it */
@@ -47,17 +49,18 @@ function announce() {
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
-/** The cloud has closed over the sky: take the sky down behind it. The cloud itself plays on. */
+/** The clouds and the sky's colour have faded: take the sky down */
 function takeDown() {
+  const html = document.documentElement;
   leaving = false;
-  document.documentElement.setAttribute(HERO_SKY_OFF_ATTR, "");
+  html.setAttribute(HERO_SKY_OFF_ATTR, "");
+  html.removeAttribute(HERO_SKY_LEAVING_ATTR);
   announce();
 }
 
-/** Stop a flight into the cloud, wherever it has got to */
-function endFlight() {
+/** Stop the sky fading away, wherever it has got to */
+function stopLeaving() {
   clearTimeout(leaveTimer);
-  clearTimeout(clearTimer);
   leaving = false;
   document.documentElement.removeAttribute(HERO_SKY_LEAVING_ATTR);
 }
@@ -79,25 +82,21 @@ export function setHeroSky(pref: HeroSkyPref) {
     clearTimeout(revealTimer);
     if (wasOff || leaving) return announce();
 
-    // You fly into a cloud first (CSS, only for visitors who allow motion); the sky comes down behind it
-    if (allowsMotion()) {
-      leaving = true;
-      html.setAttribute(HERO_SKY_LEAVING_ATTR, "");
-      leaveTimer = setTimeout(takeDown, COVER_MS);
-      clearTimer = setTimeout(endFlight, FLIGHT_MS);
-      return announce();
-    }
-    html.setAttribute(HERO_SKY_OFF_ATTR, "");
+    // The clouds evaporate and the sky fades; it is taken down once they have gone
+    leaving = true;
+    html.setAttribute(HERO_SKY_LEAVING_ATTR, "");
+    leaveTimer = setTimeout(takeDown, allowsMotion() ? LEAVE_MS : LEAVE_REDUCED_MS);
     return announce();
   }
 
-  // Turned back on mid-flight: turn round and come back out of the cloud
-  const midFlight = html.hasAttribute(HERO_SKY_LEAVING_ATTR);
-  endFlight();
+  // Turned back on while it was fading: the clouds condense again from where they had got to
+  const returning = leaving;
+  stopLeaving();
 
-  // Turning it on plays the reveal (CSS, only for visitors who allow motion)
-  if (wasOff || midFlight) {
-    html.setAttribute(HERO_SKY_REVEAL_ATTR, "");
+  // Turning it on plays the reveal (see globals.css). Coming back mid-fade, the sky's colour is
+  // still partly there, so only the icons replay.
+  if (wasOff || returning) {
+    html.setAttribute(HERO_SKY_REVEAL_ATTR, returning ? "return" : "fresh");
     clearTimeout(revealTimer);
     revealTimer = setTimeout(() => html.removeAttribute(HERO_SKY_REVEAL_ATTR), REVEAL_MS);
   }
@@ -128,6 +127,11 @@ export function useHeroSky(): HeroSkyPref | null {
 /** What the visitor chose, with no wait: for the switch itself, so a press shows at once */
 export function useHeroSkyChoice(): HeroSkyPref | null {
   return useSyncExternalStore(subscribe, readChoice, () => null);
+}
+
+/** True while the sky has been turned off and its clouds are evaporating */
+export function useHeroSkyLeaving(): boolean {
+  return useSyncExternalStore(subscribe, () => leaving, () => false);
 }
 
 /** True if the sky is being revealed right now, i.e. a visitor has just turned it on */
