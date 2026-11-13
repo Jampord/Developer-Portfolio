@@ -4,19 +4,29 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { ease } from "@/lib/motion";
+import { ease, stagger } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 type RevealProps = {
   children: React.ReactNode;
   className?: string;
+  /** The element to render, for when the children need a list around them */
+  as?: "div" | "ul" | "ol";
+  /** Seconds to wait once it scrolls into view */
   delay?: number;
+  /** How far it rises, in px */
   y?: number;
+  /** Bring the children in one after another instead of the whole block at once */
+  each?: boolean;
 };
 
-export function Reveal({ children, className, delay = 0, y = 40 }: RevealProps) {
-  const ref = useRef<HTMLDivElement>(null);
+/**
+ * Fades its content in, with a rise, the first time it scrolls into view.
+ * With reduced motion the rise is dropped and only the fade is left.
+ */
+export function Reveal({ children, className, as: Tag = "div", delay = 0, y = 40, each = false }: RevealProps) {
+  const ref = useRef<HTMLElement>(null);
 
   useGSAP(
     () => {
@@ -24,13 +34,16 @@ export function Reveal({ children, className, delay = 0, y = 40 }: RevealProps) 
       if (!el) return;
 
       const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap.from(el, {
+      // Both queries are listed so the fade still runs for visitors who ask for less motion
+      const queries = { move: "(prefers-reduced-motion: no-preference)", still: "(prefers-reduced-motion: reduce)" };
+      mm.add(queries, (context) => {
+        gsap.from(each ? el.children : el, {
           opacity: 0,
-          y,
+          y: context.conditions?.move ? y : 0,
           duration: 0.9,
           delay,
           ease: ease.enter,
+          stagger: each ? stagger : 0,
           scrollTrigger: {
             trigger: el,
             start: "top 85%",
@@ -45,8 +58,8 @@ export function Reveal({ children, className, delay = 0, y = 40 }: RevealProps) 
   );
 
   return (
-    <div ref={ref} className={className}>
+    <Tag ref={ref as React.Ref<never>} className={className}>
       {children}
-    </div>
+    </Tag>
   );
 }

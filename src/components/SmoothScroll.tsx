@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { rememberProject, takeLanding, WORK_RETURN_ATTR } from "@/lib/landing";
 import { NAVIGATE_EVENT } from "@/lib/navigate";
 import "lenis/dist/lenis.css";
 
@@ -34,6 +35,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
   const restoring = useRef(false);
   /** The section a clicked link asked for, known before the address bar catches up */
   const wanted = useRef<string | null>(null);
+  /** How far down each page was when it was left, so Back and Forward return to that spot */
+  const leftAt = useRef(new Map<string, number>());
 
   const jumpTo = (top: number) => {
     const lenis = lenisRef.current;
@@ -62,6 +65,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const onPop = () => {
+      // The address has already changed, but the page on screen is still the one being left
+      leftAt.current.set(settled.current, window.scrollY);
       restoring.current = true;
     };
 
@@ -72,6 +77,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
       restoring.current = false;
       wanted.current = url.hash || null;
+      if (url.pathname !== window.location.pathname) leftAt.current.set(window.location.pathname, window.scrollY);
 
       // A section on the page we are already on: go there now, even if the address won't change
       if (url.pathname === window.location.pathname && url.hash) {
@@ -89,6 +95,9 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       const link = e.target instanceof Element ? e.target.closest<HTMLAnchorElement>("a[href]") : null;
       if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
+      // "Back to work" names the project it is coming back from (see lib/landing.ts)
+      const project = link.getAttribute(WORK_RETURN_ATTR);
+      if (project) rememberProject(project);
       heading(link.href);
     };
     const onNavigate = (e: Event) => heading((e as CustomEvent<string>).detail);
@@ -109,14 +118,27 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     if (settled.current === pathname) return;
     settled.current = pathname;
 
+    // Back or Forward: go to where this page was left, not to its top or to a section it names
     if (restoring.current) {
       restoring.current = false;
-      return;
+      const top = leftAt.current.get(pathname);
+      if (top === undefined) return;
+      jumpTo(top);
+      // The router makes its own jump after this; ours has to be the last word
+      let frames = 3;
+      let frame = requestAnimationFrame(function again() {
+        jumpTo(top);
+        if (--frames > 0) frame = requestAnimationFrame(again);
+      });
+      return () => cancelAnimationFrame(frame);
     }
 
+    // The page itself can ask for a particular landing (Selected Work does, to come back to the
+    // project you were reading); otherwise it is the section the link named, or the top
+    const asked = takeLanding();
     const land = () => {
       const hash = wanted.current ?? window.location.hash;
-      const top = hash ? sectionTop(hash) : 0;
+      const top = asked ?? (hash ? sectionTop(hash) : 0);
       jumpTo(top ?? 0);
     };
     land();

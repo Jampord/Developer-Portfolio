@@ -9,6 +9,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { ease } from "@/lib/motion";
 import { featuredProjects, otherProjects, SCREENSHOT_QUALITY, type Project } from "@/data/projects";
+import { setLanding, takeProject } from "@/lib/landing";
 import { projectMorph } from "@/lib/project-morph";
 import { isPortrait, splitCover } from "@/lib/screenshots";
 import { PhoneScreens } from "./PhoneScreens";
@@ -18,6 +19,9 @@ gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 // Keep in sync with the media query in globals.css
 const DECK_QUERY = "(min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)";
+
+/** Room left above a card when the plain list scrolls to it, in px: clear of the sticky nav */
+const LIST_HEADROOM = 112;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -104,6 +108,8 @@ export function SelectedWork() {
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
+      /** Where the page must be for card j to be on top; only set while the cards are a deck */
+      const layout: { deckTop: ((j: number) => number) | null } = { deckTop: null };
 
       mm.add(DECK_QUERY, () => {
         const section = root.current;
@@ -164,8 +170,26 @@ export function SelectedWork() {
         };
         deck.addEventListener("focusin", onFocus);
 
+        // Measured from the page itself: this is asked for as the section mounts, before the
+        // scroll trigger above has worked out where it starts and ends
+        layout.deckTop = (j) => {
+          const box = run.getBoundingClientRect();
+          const start = box.top + window.scrollY;
+          return start + (j / (n - 1)) * (box.height - window.innerHeight);
+        };
+
         return () => deck.removeEventListener("focusin", onFocus);
       });
+
+      // Coming back from a case study: land with that project in view, so its cover has somewhere
+      // visible to return to. In the deck that means its card on top; in the plain list, its place.
+      const slug = takeProject();
+      const j = slug ? featuredProjects.findIndex((p) => p.slug === slug) : -1;
+      const card = root.current?.querySelectorAll<HTMLElement>("[data-work-item]")[j];
+      if (card) {
+        const inList = card.getBoundingClientRect().top + window.scrollY - LIST_HEADROOM;
+        setLanding(Math.max(0, Math.round(layout.deckTop ? layout.deckTop(j) : inList)));
+      }
 
       return () => mm.revert();
     },

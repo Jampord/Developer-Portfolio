@@ -18,33 +18,32 @@ export function About() {
           </div>
         </Reveal>
 
-        <Reveal delay={0.15}>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {skillGroups.map((group) => (
-              <div key={group.title} className="card-depth rounded-3xl border border-foreground/10 bg-card p-6">
-                <h3 className="font-mono text-xs text-primary">
-                  {"//"} {group.title.toLowerCase()}
-                </h3>
-                <ul className="mt-4 flex flex-wrap gap-2">
-                  {group.items.map((item) => (
-                    <li key={item} className="rounded-full border border-foreground/10 px-3 py-1 text-sm">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            <div className="rounded-3xl border border-dashed border-primary/40 p-6 sm:col-span-2">
-              <h3 className="font-mono text-xs text-primary">{"//"} currently exploring</h3>
+        {/* One card after another, starting a beat after the bio */}
+        <Reveal each delay={0.15} className="grid gap-4 sm:grid-cols-2">
+          {skillGroups.map((group) => (
+            <div key={group.title} className="card-depth rounded-3xl border border-foreground/10 bg-card p-6">
+              <h3 className="font-mono text-xs text-primary">
+                {"//"} {group.title.toLowerCase()}
+              </h3>
               <ul className="mt-4 flex flex-wrap gap-2">
-                {exploring.map((item) => (
-                  <li key={item} className="rounded-full bg-primary/10 px-3 py-1 text-sm">
+                {group.items.map((item) => (
+                  <li key={item} className="rounded-full border border-foreground/10 px-3 py-1 text-sm">
                     {item}
                   </li>
                 ))}
               </ul>
             </div>
+          ))}
+
+          <div className="rounded-3xl border border-dashed border-primary/40 p-6 sm:col-span-2">
+            <h3 className="font-mono text-xs text-primary">{"//"} currently exploring</h3>
+            <ul className="mt-4 flex flex-wrap gap-2">
+              {exploring.map((item) => (
+                <li key={item} className="rounded-full bg-primary/10 px-3 py-1 text-sm">
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </Reveal>
       </div>
