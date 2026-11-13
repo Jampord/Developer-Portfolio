@@ -12,6 +12,10 @@ import {
   SKY_ORB_BLOCKER_ATTR,
 } from "@/lib/hero-sky";
 import { isHeroSkyRevealing, useHeroSkyLeaving } from "@/lib/hero-sky-pref";
+import { useInteractiveClouds } from "@/lib/interactive-clouds-pref";
+
+/** What the sky is told about the page when it isn't to react to it */
+const NOTHING: readonly Rect[] = [];
 
 /** Space between the navbar and the top of the sun or moon, in px */
 const ORB_GAP = 16;
@@ -34,6 +38,10 @@ export function HeroSky() {
 
   // Turned off: the clouds evaporate before the sky is taken down
   const leaving = useHeroSkyLeaving();
+
+  // Off, the sky ignores the page: no clouds parting round the content, nothing kept clear of it.
+  // Turned on, the clouds ease back out of the way at their own pace.
+  const interactive = useInteractiveClouds();
 
   // The real sky over Pampanga: colours, weather, moon phase, and where the sun or moon is
   const live = useLiveSky();
@@ -89,14 +97,14 @@ export function HeroSky() {
   return (
     <div ref={root} aria-hidden="true" data-hero-sky-layer className={HERO_SKY_CLASS}>
       <DeskcloudCanvas
-        obstacles={obstacles}
+        obstacles={interactive ? obstacles : NOTHING}
         orbTop={orbTop}
         palettes={live.palettes}
         moonPhase={live.moonPhase}
         theme={live.theme}
         weather={live.weather}
         orbArc={live.orbArc}
-        orbBlockers={orbBlockers}
+        orbBlockers={interactive ? orbBlockers : NOTHING}
         entrance={entrance}
         present={!leaving}
         className="block h-full w-full"

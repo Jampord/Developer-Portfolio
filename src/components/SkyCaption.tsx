@@ -18,7 +18,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { placeTime, skyTime } from "@/lib/sky-clock";
-import { setHeroSky, useHeroSky, useHeroSkyChoice, type HeroSkyPref } from "@/lib/hero-sky-pref";
+import { setHeroSky, useHeroSky, useHeroSkyChoice } from "@/lib/hero-sky-pref";
+import { setInteractiveClouds, useInteractiveClouds } from "@/lib/interactive-clouds-pref";
 import { setSkyMode, useSkyMode, type SkyMode } from "@/lib/sky-mode";
 import { site } from "@/lib/site";
 import { useNow } from "@/lib/use-now";
@@ -27,10 +28,42 @@ import type { SkyWeather } from "@/lib/sky-weather";
 
 const surface = "border border-foreground/10 bg-card/90 backdrop-blur-md";
 const MODES: SkyMode[] = ["clock", "theme"];
-const SKY: HeroSkyPref[] = ["on", "off"];
 
-const pill =
-  "tap-target whitespace-nowrap rounded-full px-3 py-1.5 text-muted pressable hover:text-foreground aria-pressed:bg-primary aria-pressed:text-background focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary";
+const focusRing = "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary";
+
+const pill = `tap-target whitespace-nowrap rounded-full px-3 py-1.5 text-muted pressable hover:text-foreground aria-pressed:bg-primary aria-pressed:text-background ${focusRing}`;
+
+/** An on/off switch: its label, then a track whose knob slides across when it's on */
+function Switch({
+  label,
+  checked,
+  onToggle,
+  ref,
+}: {
+  label: string;
+  checked: boolean;
+  onToggle: (e: React.MouseEvent<HTMLButtonElement>) => void;
+  ref?: React.Ref<HTMLButtonElement>;
+}) {
+  return (
+    <button
+      ref={ref}
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={onToggle}
+      className={`group tap-target inline-flex items-center gap-2 whitespace-nowrap rounded-full py-1.5 pl-1 pr-0.5 text-muted transition-colors hover:text-foreground aria-checked:text-foreground ${focusRing}`}
+    >
+      {label}
+      <span
+        aria-hidden="true"
+        className="relative inline-block h-4 w-7 shrink-0 rounded-full bg-foreground/10 ring-1 ring-inset ring-foreground/40 transition-colors group-aria-checked:bg-primary group-aria-checked:ring-primary"
+      >
+        <span className="absolute left-0.5 top-0.5 size-3 rounded-full bg-foreground/60 group-aria-checked:translate-x-3 group-aria-checked:bg-background motion-safe:transition-[translate,background-color] motion-safe:duration-(--duration-base) motion-safe:ease-(--ease-spring-snappy)" />
+      </span>
+    </button>
+  );
+}
 
 /** The icon for the weather in Pampanga right now, by day or night */
 function weatherIcon(weather: SkyWeather | null, night: boolean): LucideIcon {
@@ -121,6 +154,7 @@ export function SkyCaption() {
   const pref = useHeroSky();
   // The switch shows the press at once; the sky itself takes a moment to fade out
   const choice = useHeroSkyChoice();
+  const interactive = useInteractiveClouds();
   const { sky } = site;
   const onSwitch = useRef<HTMLButtonElement>(null);
   const turnOn = useRef<HTMLButtonElement>(null);
@@ -186,24 +220,23 @@ export function SkyCaption() {
           ))}
         </div>
         <span aria-hidden="true" className="hidden h-4 w-px bg-foreground/15 sm:block" />
-        <div role="group" aria-label={sky.skyLabel} className="flex items-center gap-1.5">
-          <span className="text-muted">{sky.skyLabel}:</span>
-          {SKY.map((s) => (
-            <button
-              key={s}
-              ref={s === "on" ? onSwitch : undefined}
-              type="button"
-              aria-pressed={choice === s}
-              onClick={(e) => {
-                // Keyboard users keep their place: focus follows to the button that replaces this switch
-                if (s === "off" && e.currentTarget.matches(":focus-visible")) focusSkyButton = true;
-                setHeroSky(s);
-              }}
-              className={pill}
-            >
-              {sky.sky[s]}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          <Switch
+            ref={onSwitch}
+            label={sky.skyLabel}
+            checked={choice !== "off"}
+            onToggle={(e) => {
+              const next = choice === "off" ? "on" : "off";
+              // Keyboard users keep their place: focus follows to the button that replaces this switch
+              if (next === "off" && e.currentTarget.matches(":focus-visible")) focusSkyButton = true;
+              setHeroSky(next);
+            }}
+          />
+          <Switch
+            label={sky.interactiveLabel}
+            checked={interactive}
+            onToggle={() => setInteractiveClouds(!interactive)}
+          />
         </div>
       </div>
       <Link

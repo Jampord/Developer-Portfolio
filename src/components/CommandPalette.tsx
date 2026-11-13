@@ -13,6 +13,8 @@ import {
   Clock,
   Cloud,
   CloudOff,
+  MousePointer2,
+  MousePointer2Off,
   Hash,
   Moon,
   Search,
@@ -24,6 +26,7 @@ import { site } from "@/lib/site";
 import { OPEN_PALETTE_EVENT } from "@/lib/command-palette";
 import { announceNavigation } from "@/lib/navigate";
 import { setHeroSky, useHeroSky } from "@/lib/hero-sky-pref";
+import { setInteractiveClouds, useInteractiveClouds } from "@/lib/interactive-clouds-pref";
 import { setSkyMode, useSkyMode } from "@/lib/sky-mode";
 
 type CopyState = "idle" | "done" | "failed";
@@ -68,6 +71,7 @@ export function CommandPalette() {
   const { resolvedTheme, setTheme } = useTheme();
   const skyMode = useSkyMode();
   const heroSky = useHeroSky();
+  const interactiveClouds = useInteractiveClouds();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -222,6 +226,19 @@ export function CommandPalette() {
                   setOpen(false);
                 }}
               />
+              {/* Like its switch, only there while the sky is */}
+              {heroSky === "on" && (
+                <PaletteItem
+                  icon={interactiveClouds ? MousePointer2Off : MousePointer2}
+                  label={interactiveClouds ? site.sky.palette.interactiveOff : site.sky.palette.interactiveOn}
+                  value="interactive clouds on off"
+                  keywords={["sky", "clouds", "interactive", "react", "obstacles", "icons"]}
+                  onSelect={() => {
+                    setInteractiveClouds(!interactiveClouds);
+                    setOpen(false);
+                  }}
+                />
+              )}
               <PaletteItem
                 icon={copy === "done" ? Check : Copy}
                 label={copyLabel}
