@@ -114,7 +114,7 @@ export function ContactForm() {
         className="inline-flex items-center justify-center gap-2 justify-self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-accent-foreground pressable hover:opacity-90 disabled:opacity-60"
       >
         {status === "sending" ? "Sending…" : "Send message"}
-        <Send className="size-4" aria-hidden="true" />
+        <Send className="settle nudge-out size-4" aria-hidden="true" />
       </button>
 
       <div aria-live="polite" className="min-h-6 text-sm">

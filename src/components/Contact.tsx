@@ -30,7 +30,7 @@ export function Contact() {
                     {...(l.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   >
                     {l.text}
-                    <ArrowUpRight className="size-5 transition-transform group-hover:rotate-45" aria-hidden="true" />
+                    <ArrowUpRight className="settle size-5 group-hover:rotate-45" aria-hidden="true" />
                   </a>
                 </li>
               ))}

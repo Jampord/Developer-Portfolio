@@ -51,7 +51,7 @@ export default async function ProjectPage({ params }: Props) {
         href="/#work"
         className="tap-target inline-flex items-center gap-2 font-mono text-sm text-muted transition-colors hover:text-primary"
       >
-        <ArrowLeft className="size-4" aria-hidden="true" />
+        <ArrowLeft className="settle nudge-left size-4" aria-hidden="true" />
         Back to work
       </Link>
 
@@ -69,7 +69,7 @@ export default async function ProjectPage({ params }: Props) {
               href={project.links.live}
               className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-sm font-medium text-accent-foreground pressable hover:opacity-90"
             >
-              Live site <ExternalLink className="size-4" aria-hidden="true" />
+              Live site <ExternalLink className="settle nudge-out size-4" aria-hidden="true" />
             </a>
           )}
           {project.links?.repos?.map((r) => (
@@ -80,7 +80,7 @@ export default async function ProjectPage({ params }: Props) {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-full border border-foreground/15 px-5 py-3 text-sm font-medium pressable hover:bg-foreground/5"
             >
-              {r.label} <ExternalLink className="size-4" aria-hidden="true" />
+              {r.label} <ExternalLink className="settle nudge-out size-4" aria-hidden="true" />
             </a>
           ))}
           {project.note && (
@@ -221,13 +221,13 @@ export default async function ProjectPage({ params }: Props) {
       {next && (
         <Link
           href={`/projects/${next.slug}`}
-          className="group mt-20 flex items-center justify-between rounded-3xl border border-foreground/10 p-8 pressable hover:border-primary/50"
+          className="group mt-20 flex items-center justify-between rounded-3xl border border-foreground/10 bg-card p-8 card-lift pressable hover:border-primary/50"
         >
           <span>
             <span className="font-mono text-sm text-primary">{"//"} next project</span>
             <span className="mt-1 block font-display text-3xl font-bold md:text-5xl">{next.title}</span>
           </span>
-          <ArrowUpRight className="size-8 transition-transform group-hover:rotate-45" aria-hidden="true" />
+          <ArrowUpRight className="settle size-8 group-hover:rotate-45" aria-hidden="true" />
         </Link>
       )}
     </article>

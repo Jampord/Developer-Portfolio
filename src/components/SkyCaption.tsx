@@ -196,7 +196,7 @@ export function SkyCaption() {
         className={`tap-target inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:text-primary ${surface}`}
       >
         {sky.caption}
-        <ArrowUpRight className="size-3.5 shrink-0" aria-hidden="true" />
+        <ArrowUpRight className="settle nudge-out size-3.5 shrink-0" aria-hidden="true" />
       </Link>
     </div>
   );

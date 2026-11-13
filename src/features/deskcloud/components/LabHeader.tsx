@@ -12,7 +12,7 @@ export function LabHeader() {
           href="/"
           className="tap-target inline-flex items-center gap-2 rounded-full py-1.5 pr-2 text-sm transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
-          <ArrowLeft className="size-4" aria-hidden="true" />
+          <ArrowLeft className="settle nudge-left size-4" aria-hidden="true" />
           {en.header.back}
         </Link>
         <ThemeToggle />

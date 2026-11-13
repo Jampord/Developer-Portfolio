@@ -37,7 +37,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   return (
     <article
       data-cursor="View"
-      className="group relative h-full overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 pressable hover:border-primary/50 md:p-6"
+      className="group relative h-full overflow-hidden rounded-3xl border border-foreground/10 bg-card p-4 card-lift pressable hover:border-primary/50 md:p-6"
     >
       {cover.length > 0 && (
         <div className="overflow-hidden rounded-2xl border border-foreground/10">
@@ -85,7 +85,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         </div>
         <span
           aria-hidden="true"
-          className="grid size-12 place-items-center rounded-full bg-accent text-accent-foreground transition-transform group-hover:rotate-45"
+          className="grid size-12 place-items-center rounded-full bg-accent text-accent-foreground settle group-hover:rotate-45"
         >
           <ArrowUpRight className="size-5" />
         </span>
@@ -214,7 +214,7 @@ export function SelectedWork() {
                   className="group/also tap-target inline-flex items-center gap-1 font-display text-xl font-bold hover:text-primary focus-visible:outline-2 focus-visible:outline-primary"
                 >
                   {p.title}
-                  <ArrowUpRight aria-hidden="true" className="size-4 transition-transform group-hover/also:rotate-45" />
+                  <ArrowUpRight aria-hidden="true" className="settle size-4 group-hover/also:rotate-45" />
                 </Link>
                 <p className="mt-1 text-sm text-muted">{p.summary}</p>
               </li>

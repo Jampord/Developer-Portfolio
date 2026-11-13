@@ -141,9 +141,9 @@ export function CommandPalette() {
         // A click on the dimmed area (the dialog itself) closes it
         if (e.target === e.currentTarget) setOpen(false);
       }}
-      className="m-0 h-dvh max-h-none w-screen max-w-none items-start justify-center bg-black/50 p-4 pt-[12vh] text-foreground backdrop-blur-sm open:flex"
+      className="palette m-0 h-dvh max-h-none w-screen max-w-none items-start justify-center bg-black/50 p-4 pt-[12vh] text-foreground backdrop-blur-sm open:flex"
     >
-      <div className="w-full max-w-xl overflow-hidden rounded-3xl border border-foreground/10 bg-card shadow-2xl">
+      <div className="palette-panel w-full max-w-xl overflow-hidden rounded-3xl border border-foreground/10 bg-card shadow-2xl">
         <Command label="Command palette" loop>
           <div className="flex items-center gap-3 border-b border-foreground/10 px-4">
             <Search className="size-4 shrink-0 text-muted" aria-hidden="true" />
