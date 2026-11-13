@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Eye } from "lucide-react";
 import { site } from "@/lib/site";
 
 /** Set on the owner's own devices (visit /?me once; /?me=off undoes it) so their visits don't count */
@@ -78,13 +79,21 @@ export function ProfileViews() {
   // Until it scrolls into view it waits at its starting point; with reduced motion it's just the number
   const display = shown ?? (reducedMotion() ? views : startOf(views));
   return (
-    <p ref={ref} className="tabular-nums">
-      <span aria-hidden="true" className="mr-3">
-        ·
+    // A small live badge, in the same language as the weather card's "Live" dot
+    <p
+      ref={ref}
+      title={site.views.hint}
+      className="inline-flex items-center gap-2 rounded-full border border-foreground/10 bg-card/90 py-1 pl-2.5 pr-3 backdrop-blur-md"
+    >
+      <Eye aria-hidden="true" className="size-3.5 shrink-0 text-primary" />
+      <span>
+        {/* Screen readers get the final number once, not every step of the count */}
+        <span aria-hidden="true" className="font-semibold text-primary tabular-nums">
+          {format(display)}
+        </span>
+        <span className="sr-only">{format(views)}</span> {site.views.label}
       </span>
-      {/* Screen readers get the final number once, not every step of the count */}
-      <span aria-hidden="true">{format(display)}</span>
-      <span className="sr-only">{format(views)}</span> {site.views.label}
+      <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-primary motion-safe:animate-pulse" />
     </p>
   );
 }

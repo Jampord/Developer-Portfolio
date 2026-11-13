@@ -44,7 +44,11 @@ export const site = {
     },
   },
   /** The footer's visitor count: "1,234 profile views" */
-  views: { label: "profile views" },
+  views: {
+    label: "profile views",
+    /** Shown on hover, so the number says what it is */
+    hint: "Visitors, counted once a day since November 2026",
+  },
   cvPath: "/john-ford-actub-cv.pdf",
   /** Read out after the logo, which is the link home */
   homeLabel: "home",
